@@ -16,14 +16,37 @@ const raceGrid = document.getElementById("raceGrid");
 let selectedVenue = "徳山";
 let selectedRace = 10;
 
-const samplePlayers = [
-  {lane:1,name:"山田 太郎",grade:"A1",reg:"4321",branch:"福岡",nat:"6.82",local:"7.14",avgst:".16",cst:".17",season:".18",est:".13",motor:"32",m2:"41.2",m3:"58.7",r2:"38.8",r3:"55.5",pre:"6.78",f:"0"},
-  {lane:2,name:"大森 翼",grade:"A2",reg:"5247",branch:"兵庫",nat:"5.88",local:"5.61",avgst:".13",cst:".12",season:".11",est:".08",motor:"54",m2:"42.1",m3:"60.4",r2:"77.7",r3:"88.8",pre:"6.71",f:"0"},
-  {lane:3,name:"佐藤 海斗",grade:"A1",reg:"4988",branch:"大阪",nat:"6.41",local:"6.02",avgst:".14",cst:".13",season:".15",est:".11",motor:"18",m2:"48.0",m3:"65.2",r2:"51.2",r3:"68.4",pre:"6.74",f:"0"},
-  {lane:4,name:"中村 亮",grade:"B1",reg:"5110",branch:"山口",nat:"4.92",local:"5.20",avgst:".18",cst:".17",season:".20",est:".21",motor:"11",m2:"33.7",m3:"48.1",r2:"29.4",r3:"41.2",pre:"6.82",f:"1"},
-  {lane:5,name:"田中 悠",grade:"A2",reg:"4870",branch:"東京",nat:"5.77",local:"5.48",avgst:".12",cst:".11",season:".10",est:".05",motor:"67",m2:"45.8",m3:"62.0",r2:"58.3",r3:"75.0",pre:"6.73",f:"0"},
-  {lane:6,name:"木村 蓮",grade:"B1",reg:"5301",branch:"香川",nat:"4.66",local:"4.91",avgst:".15",cst:".14",season:".13",est:".09",motor:"23",m2:"36.9",m3:"50.0",r2:"44.4",r3:"61.1",pre:"6.76",f:"0"}
-];
+const API_BASE = "https://boat-race-api.k09082207390.workers.dev/";
+
+let samplePlayers = [];
+let currentRaceData = null;
+
+const PLACE_NUMBERS = {
+  "桐生": 1,
+  "戸田": 2,
+  "江戸川": 3,
+  "平和島": 4,
+  "多摩川": 5,
+  "浜名湖": 6,
+  "蒲郡": 7,
+  "常滑": 8,
+  "津": 9,
+  "三国": 10,
+  "びわこ": 11,
+  "住之江": 12,
+  "尼崎": 13,
+  "鳴門": 14,
+  "丸亀": 15,
+  "児島": 16,
+  "宮島": 17,
+  "徳山": 18,
+  "下関": 19,
+  "若松": 20,
+  "芦屋": 21,
+  "福岡": 22,
+  "唐津": 23,
+  "大村": 24
+};
 
 function todayString(){
   const d = new Date();
@@ -70,13 +93,110 @@ function renderRaces(){
   }
 }
 
-function openRace(r){
+async function openRace(r) {
   selectedRace = r;
+
   raceView.classList.add("hidden");
   detailView.classList.remove("hidden");
-  document.getElementById("raceTitle").textContent = `${selectedVenue} ${r}R`;
-  document.getElementById("raceMeta").textContent = `締切 ${sampleDeadline(r)} ・ デモデータ`;
-  renderAll();
+
+  document.getElementById("raceTitle").textContent =
+    `${selectedVenue} ${r}R`;
+
+  document.getElementById("raceMeta").textContent =
+    "実データを取得中...";
+
+  document.getElementById("fetchStatus").textContent =
+    "ボート日和から取得中...";
+
+  try {
+    const placeNo = PLACE_NUMBERS[selectedVenue];
+
+    if (!placeNo) {
+      throw new Error("場番号が見つかりません");
+    }
+
+    const hiduke = "20260809";
+
+    const apiUrl =
+      `${API_BASE}?hiduke=${hiduke}` +
+      `&place_no=${placeNo}` +
+      `&race_no=${r}`;
+
+    const res = await fetch(apiUrl);
+
+    if (!res.ok) {
+      throw new Error(`API HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    if (!data.ok) {
+      throw new Error(data.error || "データ取得失敗");
+    }
+
+    currentRaceData = data;
+
+    samplePlayers = data.players.map(p => ({
+      lane: p.lane,
+      name: p.name || "-",
+      grade: p.class || "-",
+      reg: String(p.number ?? "-"),
+      branch: p.branch || "-",
+
+      nat: p.national?.winRate ?? "-",
+      local: p.local?.winRate ?? "-",
+
+      avgst: "-",
+      cst: "-",
+      season: "-",
+      est: "-",
+
+      motor: String(p.motor?.number ?? "-"),
+      m2: p.motor?.secondRate ?? "-",
+      m3: p.motor?.thirdRate ?? "-",
+
+      r2: "-",
+      r3: "-",
+
+      pre: "-",
+      f: "0"
+    }));
+
+    const race = data.race || {};
+
+    document.getElementById("raceTitle").textContent =
+      `${race.place || selectedVenue} ${race.raceNo || r}R`;
+
+    document.getElementById("raceMeta").textContent =
+      `${race.day ? race.day + "日目" : ""}` +
+      `${race.rank ? "・" + race.rank : ""}` +
+      `${race.title ? "・" + race.title : ""}`;
+
+    document.getElementById("fetchStatus").textContent =
+      `実データ取得成功：${samplePlayers.length}艇`;
+
+    renderAll();
+
+  } catch (error) {
+    console.error(error);
+
+    samplePlayers = [];
+
+    document.getElementById("fetchStatus").textContent =
+      `取得失敗：${error.message}`;
+
+    document.getElementById("raceMeta").textContent =
+      "データ取得に失敗しました";
+
+    document.getElementById("playerCards").innerHTML =
+      `<div class="panel">
+        データ取得エラー<br>
+        ${error.message}
+      </div>`;
+
+    document.getElementById("aiText").value =
+      `データ取得エラー\n${error.message}`;
+  }
 }
 
 function sampleDeadline(r){
