@@ -1,195 +1,776 @@
-*{box-sizing:border-box}
-:root{
-  --bg:#eefcff;
-  --card:#ffffff;
-  --line:#c6e9f2;
-  --text:#16323c;
-  --muted:#6d8791;
-  --blue:#0587ff;
-  --blue2:#00b4ff;
-  --dark:#0c2530;
-  --good:#16a34a;
-  --warn:#f59e0b;
-  --danger:#dc2626;
+/* =========================================================
+   BOAT RACE DASHBOARD
+   Compact 6-lane layout
+========================================================= */
+
+* {
+  box-sizing: border-box;
 }
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;
-  background:linear-gradient(180deg,#dff7ff 0,#f7fcfd 260px);
-  color:var(--text);
+
+html,
+body {
+  margin: 0;
+  padding: 0;
 }
-.site-header{
-  display:flex;
-  justify-content:space-between;
-  gap:16px;
-  align-items:center;
-  padding:22px 24px;
-  background:linear-gradient(135deg,#0077ff,#00b8d9);
-  color:#fff;
-  box-shadow:0 8px 24px rgba(0,90,130,.16);
+
+body {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Hiragino Kaku Gothic ProN",
+    "Hiragino Sans",
+    Meiryo,
+    sans-serif;
+
+  background: #f4fbfe;
+  color: #102938;
+  font-size: 14px;
 }
-.site-header h1{margin:0;font-size:clamp(22px,4vw,34px);letter-spacing:.04em}
-.site-header p{margin:4px 0 0;opacity:.92}
-.date-box{
-  background:rgba(255,255,255,.16);
-  border:1px solid rgba(255,255,255,.3);
-  padding:10px 14px;
-  border-radius:12px;
-  font-weight:700;
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.site-header {
+  background: linear-gradient(90deg, #078cf0, #08b3cf);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
-.container{max-width:1280px;margin:0 auto;padding:24px}
-.section-title-row,.toolbar,.status-panel{
-  display:flex;align-items:center;justify-content:space-between;gap:14px
+
+.site-header-inner {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+
+  min-height: 82px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
-h2,h3{margin-top:0}
-.muted{color:var(--muted);margin-top:4px}
-.hidden{display:none!important}
-.venue-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
-  gap:12px;
+
+.site-header h1 {
+  margin: 0;
+  font-size: 26px;
+  letter-spacing: 0.5px;
 }
-.venue-card{
-  border:none;
-  border-radius:14px;
-  overflow:hidden;
-  padding:0;
-  cursor:pointer;
-  background:var(--card);
-  box-shadow:0 3px 12px rgba(0,80,110,.08);
-  transition:.18s transform,.18s box-shadow;
-  text-align:left;
+
+.site-header p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  opacity: 0.95;
 }
-.venue-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,80,110,.14)}
-.venue-name{
-  display:block;
-  padding:10px 12px;
-  font-size:18px;
-  font-weight:800;
-  color:#fff;
-  background:linear-gradient(180deg,#078cff,#0067df);
+
+.today-label {
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 10px;
+  padding: 8px 13px;
+  font-weight: 700;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.08);
 }
-.venue-body{display:block;padding:11px 12px}
-.venue-body strong{display:block;font-size:14px}
-.venue-body small{display:block;margin-top:3px;color:var(--muted)}
-.badge{
-  display:inline-block;
-  margin-top:8px;
-  font-size:11px;
-  font-weight:800;
-  color:#fff;
-  background:#6b7280;
-  padding:3px 7px;border-radius:999px
+
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.app-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 24px 0 50px;
 }
-.badge.night{background:#4f46e5}
-.badge.g1{background:#f59e0b}
-.race-grid{
-  display:grid;
-  grid-template-columns:repeat(6,1fr);
-  gap:12px;
+
+.hidden {
+  display: none !important;
 }
-.race-btn{
-  border:1px solid var(--line);
-  background:#fff;
-  padding:18px 8px;
-  border-radius:12px;
-  font-size:18px;
-  font-weight:900;
-  color:var(--blue);
-  cursor:pointer;
+
+.view {
+  width: 100%;
 }
-.race-btn:hover{background:#e8f8ff}
-.ghost-btn,.primary-btn{
-  border:none;border-radius:10px;padding:11px 15px;font-weight:800;cursor:pointer
+
+
+/* =========================================================
+   HEADINGS
+========================================================= */
+
+.section-head,
+.race-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
 }
-.ghost-btn{background:#fff;color:var(--text);border:1px solid var(--line)}
-.primary-btn{background:linear-gradient(135deg,var(--blue),var(--blue2));color:white}
-.status-panel{
-  padding:14px 16px;
-  background:#fff;
-  border:1px solid var(--line);
-  border-radius:14px;
-  margin:18px 0;
+
+.section-head h2,
+.race-heading h2 {
+  margin: 0;
+  font-size: 20px;
 }
-.status-dot{
-  display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px
+
+.section-head p,
+.race-heading p {
+  margin: 5px 0 0;
+  color: #66808f;
+  font-size: 12px;
 }
-.status-dot.waiting{background:var(--warn)}
-.tabs{display:flex;gap:8px;overflow-x:auto;margin-bottom:14px}
-.tab{
-  border:1px solid var(--line);background:#fff;color:var(--text);
-  padding:10px 16px;border-radius:999px;font-weight:800;cursor:pointer
+
+
+/* =========================================================
+   NAV
+========================================================= */
+
+.top-nav {
+  margin-bottom: 14px;
 }
-.tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
-.tab-panel{display:none}
-.tab-panel.active{display:block}
-.cards.six{
-  display:grid;
-  grid-template-columns:repeat(6,1fr);
-  gap:10px;
+
+.back-btn {
+  border: 1px solid #b8deee;
+  background: white;
+  color: #173747;
+
+  border-radius: 8px;
+  padding: 8px 14px;
+
+  font-weight: 700;
+  cursor: pointer;
 }
-.player-card{
-  background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden
+
+.back-btn:hover {
+  background: #eef9fd;
 }
-.player-head{
-  display:flex;align-items:center;gap:10px;padding:10px 12px;font-weight:900
+
+
+/* =========================================================
+   VENUE / RACE GRID
+========================================================= */
+
+.venue-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
 }
-.lane{
-  width:32px;height:32px;border-radius:8px;display:grid;place-items:center;
-  border:1px solid rgba(0,0,0,.12);font-weight:900
+
+.race-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
 }
-.l1{background:white;color:#111}.l2{background:#111;color:#fff}.l3{background:#ef4444;color:#fff}
-.l4{background:#2563eb;color:#fff}.l5{background:#facc15;color:#111}.l6{background:#22c55e;color:#fff}
-.player-body{padding:0 12px 12px}
-.player-name{font-weight:900;font-size:16px;margin-bottom:8px}
-.mini-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:7px;font-size:12px
+
+
+/* =========================================================
+   STATUS BAR
+========================================================= */
+
+.status-bar {
+  min-height: 58px;
+
+  border: 1px solid #b8e1f0;
+  background: white;
+  border-radius: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 10px 14px;
+  margin-bottom: 14px;
 }
-.metric{
-  background:#f5fbfd;border-radius:8px;padding:7px
+
+.fetch-status {
+  font-weight: 600;
+  font-size: 13px;
 }
-.metric b{display:block;font-size:14px;margin-top:2px}
-.hot{color:#dc2626}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
-.panel{
-  background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;
-  margin-bottom:14px;box-shadow:0 2px 8px rgba(0,80,100,.04)
+
+.fetch-status::before {
+  content: "●";
+  color: #ffa500;
+  margin-right: 8px;
 }
-.confidence-wrap{display:flex;align-items:center;gap:14px}
-.confidence-score{font-size:36px;font-weight:900}
-.confidence-bar{height:14px;flex:1;background:#e5eef1;border-radius:999px;overflow:hidden}
-.confidence-bar span{display:block;height:100%;background:linear-gradient(90deg,#00b4ff,#0077ff)}
-.kv{margin:0}
-.kv div{display:flex;justify-content:space-between;border-bottom:1px solid #edf4f6;padding:8px 0}
-.kv dt{color:var(--muted)}.kv dd{margin:0;font-weight:800}
-textarea{
-  width:100%;min-height:380px;resize:vertical;border:1px solid var(--line);
-  border-radius:10px;padding:14px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
-  line-height:1.6;background:#f8fcfd;color:#17343f
+
+.copy-btn {
+  border: 0;
+  border-radius: 8px;
+
+  padding: 10px 14px;
+
+  background: #078df0;
+  color: white;
+
+  font-weight: 700;
+  font-size: 12px;
+
+  cursor: pointer;
 }
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;white-space:nowrap}
-th,td{padding:10px;border-bottom:1px solid #e8f1f4;text-align:center}
-th{background:#f2faff;color:#31505b}
-.rank-good{color:var(--good);font-weight:900}
-.rank-warn{color:var(--warn);font-weight:900}
-.toast{
-  position:fixed;right:20px;bottom:20px;background:#0f2e3a;color:white;
-  padding:12px 16px;border-radius:10px;opacity:0;transform:translateY(10px);
-  pointer-events:none;transition:.2s
+
+.copy-btn:hover {
+  opacity: 0.88;
 }
-.toast.show{opacity:1;transform:translateY(0)}
-@media (max-width:960px){
-  .cards.six{grid-template-columns:repeat(3,1fr)}
-  .race-grid{grid-template-columns:repeat(4,1fr)}
+
+
+/* =========================================================
+   TABS
+========================================================= */
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
 }
-@media (max-width:640px){
-  .site-header{align-items:flex-start;flex-direction:column}
-  .container{padding:14px}
-  .venue-grid{grid-template-columns:repeat(2,1fr)}
-  .cards.six{grid-template-columns:repeat(2,1fr)}
-  .race-grid{grid-template-columns:repeat(3,1fr)}
-  .two-col{grid-template-columns:1fr}
-  .status-panel{align-items:stretch;flex-direction:column}
-  .primary-btn{width:100%}
+
+.tab {
+  border: 1px solid #b7deed;
+  background: white;
+
+  color: #173747;
+
+  padding: 8px 15px;
+
+  border-radius: 20px;
+
+  font-weight: 700;
+  font-size: 12px;
+
+  cursor: pointer;
+}
+
+.tab.active {
+  background: #078df0;
+  border-color: #078df0;
+  color: white;
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+
+/* =========================================================
+   PLAYER GRID
+   ★ PCでは6艇を絶対に横並び
+========================================================= */
+
+.player-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  align-items: stretch;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+
+/* =========================================================
+   PLAYER CARD
+
+   app.js側で player-card / racer-card / boat-card 等
+   どの名前を使っていてもある程度対応
+========================================================= */
+
+.player-grid > * {
+  min-width: 0;
+  width: 100%;
+
+  background: white;
+  border: 1px solid #b8dfed;
+  border-radius: 10px;
+
+  padding: 9px;
+
+  overflow: hidden;
+}
+
+.player-card,
+.racer-card,
+.boat-card {
+  background: white;
+  border: 1px solid #b8dfed;
+  border-radius: 10px;
+  padding: 9px;
+  min-width: 0;
+}
+
+
+/* カード内の余白を圧縮 */
+
+.player-grid h3,
+.player-grid h4 {
+  margin: 4px 0 8px;
+  font-size: 14px;
+}
+
+.player-grid p {
+  margin: 2px 0;
+}
+
+
+/* =========================================================
+   app.js が生成するカード内部DIVをコンパクト化
+========================================================= */
+
+.player-grid > * > div {
+  max-width: 100%;
+}
+
+
+/*
+  選手カード内部でデータ欄にgridが使われていなくても
+  可能な範囲で2列化
+*/
+
+.player-stats,
+.stats-grid,
+.player-info-grid,
+.card-grid,
+.data-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px !important;
+}
+
+
+/* 数値ボックス */
+
+.player-stats > *,
+.stats-grid > *,
+.player-info-grid > *,
+.card-grid > *,
+.data-grid > * {
+  min-width: 0;
+  padding: 6px !important;
+
+  background: #f2f9fc;
+  border-radius: 6px;
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   GENERIC SMALL DATA BLOCKS
+========================================================= */
+
+.stat,
+.stat-box,
+.data-box,
+.info-box {
+  background: #f2f9fc;
+  border-radius: 6px;
+
+  padding: 6px;
+
+  min-width: 0;
+}
+
+.stat-label,
+.label {
+  display: block;
+  color: #607d8b;
+  font-size: 9px;
+  line-height: 1.2;
+}
+
+.stat-value,
+.value {
+  display: block;
+
+  margin-top: 2px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   LANE BADGES
+========================================================= */
+
+.lane,
+.lane-badge,
+.boat-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 24px;
+  height: 24px;
+
+  border-radius: 6px;
+
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   SERIES / CURRENT RESULTS
+========================================================= */
+
+.series,
+.series-results,
+.current-series,
+.recent-results {
+  margin-top: 8px !important;
+
+  font-size: 9px !important;
+  line-height: 1.55 !important;
+
+  color: #385566;
+}
+
+.series-title {
+  color: #8297a3;
+  margin-bottom: 3px;
+}
+
+.series div,
+.series-results div,
+.current-series div,
+.recent-results div {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   SUMMARY LOWER AREA
+========================================================= */
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.panel {
+  background: white;
+
+  border: 1px solid #b8dfed;
+  border-radius: 10px;
+
+  padding: 14px;
+}
+
+.panel h3 {
+  margin: 0 0 14px;
+  font-size: 16px;
+}
+
+
+/* =========================================================
+   CONFIDENCE
+========================================================= */
+
+.confidence-panel {
+  min-height: 170px;
+}
+
+.confidence-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.confidence-score {
+  flex: 0 0 auto;
+
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.confidence-bar {
+  position: relative;
+
+  flex: 1;
+
+  height: 12px;
+
+  background: #e4eef2;
+  border-radius: 10px;
+
+  overflow: hidden;
+}
+
+.confidence-bar span {
+  display: block;
+
+  width: 0%;
+  height: 100%;
+
+  background: #078df0;
+
+  transition: width 0.3s ease;
+}
+
+.confidence-note {
+  margin: 12px 0 0;
+
+  color: #607d8b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+
+/* =========================================================
+   WEATHER
+========================================================= */
+
+.kv {
+  margin: 0;
+}
+
+.kv > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  min-height: 30px;
+
+  border-bottom: 1px solid #e5eef2;
+}
+
+.kv > div:last-child {
+  border-bottom: 0;
+}
+
+.kv dt {
+  color: #6b8794;
+  font-size: 12px;
+}
+
+.kv dd {
+  margin: 0;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   AI PREVIEW
+========================================================= */
+
+.ai-panel {
+  margin-top: 12px;
+}
+
+#aiText {
+  display: block;
+
+  width: 100%;
+  min-height: 260px;
+
+  resize: vertical;
+
+  border: 1px solid #c4e1ec;
+  border-radius: 8px;
+
+  padding: 12px;
+
+  background: #fbfdfe;
+
+  color: #173747;
+
+  font-family:
+    Consolas,
+    "Courier New",
+    monospace;
+
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border-bottom: 1px solid #e2edf2;
+
+  padding: 9px 8px;
+
+  text-align: center;
+
+  font-size: 12px;
+}
+
+th {
+  background: #f1f8fb;
+  color: #506d7a;
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+.toast {
+  position: fixed;
+
+  left: 50%;
+  bottom: 25px;
+
+  transform: translateX(-50%) translateY(20px);
+
+  padding: 10px 18px;
+
+  border-radius: 8px;
+
+  background: #173747;
+  color: white;
+
+  font-size: 12px;
+
+  opacity: 0;
+  pointer-events: none;
+
+  transition: 0.2s;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+
+/* =========================================================
+   DESKTOP
+   ★ 横幅を最大限使う
+========================================================= */
+
+@media (min-width: 1200px) {
+
+  .app-shell,
+  .site-header-inner {
+    width: min(1320px, calc(100% - 40px));
+  }
+
+  .player-grid {
+    gap: 8px;
+  }
+
+  .player-grid > * {
+    padding: 9px;
+  }
+
+}
+
+
+/* =========================================================
+   MEDIUM
+========================================================= */
+
+@media (max-width: 1050px) {
+
+  .player-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .venue-grid,
+  .race-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 760px) {
+
+  .site-header-inner {
+    min-height: 72px;
+  }
+
+  .site-header h1 {
+    font-size: 20px;
+  }
+
+  .app-shell {
+    width: calc(100% - 20px);
+    padding-top: 16px;
+  }
+
+  .player-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .venue-grid,
+  .race-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+
+  .site-header-inner {
+    width: calc(100% - 20px);
+  }
+
+  .today-label {
+    display: none;
+  }
+
+  .status-bar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .copy-btn {
+    width: 100%;
+  }
+
+  .player-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .venue-grid,
+  .race-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .tabs {
+    overflow-x: auto;
+  }
+
+  .tab {
+    flex: 0 0 auto;
+  }
+
 }
