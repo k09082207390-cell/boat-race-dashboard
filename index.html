@@ -3,116 +3,685 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>BOAT RACE DASHBOARD</title>
+
+  <meta
+    name="description"
+    content="ボートレース予想用データを、開催一覧からレース比較まで見やすく表示するダッシュボード"
+  >
+
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+
+  <!-- =======================================================
+       HEADER
+       ======================================================= -->
+
   <header class="site-header">
+
     <div class="site-header-inner">
-      <div>
-        <h1>BOAT RACE DASHBOARD</h1>
-        <p>予想用データを、必要なものだけ。</p>
+
+      <div class="brand-block">
+
+        <h1 class="site-title">
+          BOAT RACE DASHBOARD
+        </h1>
+
+        <p class="site-subtitle">
+          予想用データを、必要なものだけ。
+        </p>
+
       </div>
-      <div id="todayLabel" class="today-label">----/--/--</div>
+
+
+      <div class="header-date-block">
+
+        <span class="header-date-label">
+          選択日
+        </span>
+
+        <strong
+          id="headerDate"
+          class="header-date"
+        >
+          ----/--/--
+        </strong>
+
+      </div>
+
     </div>
+
   </header>
 
+
+
+  <!-- =======================================================
+       MAIN
+       ======================================================= -->
+
   <main class="app-shell">
-    <section id="venueView" class="view">
-      <div class="home-heading">
-        <div>
-          <h2>本日の開催</h2>
-          <p>レース場とレース番号を選択</p>
+
+
+    <!-- =====================================================
+         TOP：開催一覧
+         ===================================================== -->
+
+    <section
+      id="scheduleView"
+      class="view"
+    >
+
+
+      <!-- 日付ナビ -->
+
+      <div class="date-navigation">
+
+        <button
+          id="prevDateBtn"
+          class="date-nav-btn"
+          type="button"
+          aria-label="前日"
+        >
+          ‹
+        </button>
+
+
+        <button
+          id="todayBtn"
+          class="today-btn"
+          type="button"
+        >
+          本日
+        </button>
+
+
+        <div class="selected-date-box">
+
+          <span class="selected-date-weekday">
+            開催日
+          </span>
+
+          <strong
+            id="selectedDate"
+            class="selected-date"
+          >
+            ----/--/--
+          </strong>
+
         </div>
-        <div id="homeDateLabel" class="home-date">----/--/--</div>
+
+
+        <button
+          id="nextDateBtn"
+          class="date-nav-btn"
+          type="button"
+          aria-label="翌日"
+        >
+          ›
+        </button>
+
       </div>
-      <div id="venueGrid" class="venue-list"></div>
+
+
+      <!-- 開催一覧ヘッダー -->
+
+      <div class="section-heading schedule-heading">
+
+        <div>
+
+          <h2>
+            開催一覧
+          </h2>
+
+          <p>
+            場を選んで、レース一覧へ
+          </p>
+
+        </div>
+
+
+        <div
+          id="scheduleStatus"
+          class="schedule-status"
+        >
+          開催情報を取得中...
+        </div>
+
+      </div>
+
+
+      <!-- 24場グリッド -->
+
+      <div
+        id="venueGrid"
+        class="venue-grid"
+      >
+
+        <div class="loading-panel">
+          開催情報を読み込み中...
+        </div>
+
+      </div>
+
     </section>
 
-    <section id="detailView" class="view hidden">
+
+
+    <!-- =====================================================
+         場選択後：1R〜12R
+         ===================================================== -->
+
+    <section
+      id="raceListView"
+      class="view hidden"
+    >
+
+
       <div class="top-nav">
-        <button id="backToVenues" class="back-btn" type="button">← 本日の開催</button>
+
+        <button
+          id="backToScheduleBtn"
+          class="back-btn"
+          type="button"
+        >
+          ← 開催一覧
+        </button>
+
       </div>
 
-      <div class="race-heading">
+
+      <div class="venue-detail-header">
+
         <div>
-          <h2 id="raceTitle">レース</h2>
-          <p id="raceMeta">BOAT RACE公式・実データ</p>
+
+          <div class="venue-title-row">
+
+            <h2
+              id="selectedVenueName"
+              class="selected-venue-name"
+            >
+              レース場
+            </h2>
+
+            <span
+              id="selectedVenueGrade"
+              class="grade-badge hidden"
+            >
+              一般
+            </span>
+
+            <span
+              id="selectedVenueNight"
+              class="night-badge hidden"
+            >
+              ナイター
+            </span>
+
+          </div>
+
+
+          <p
+            id="selectedVenueTitle"
+            class="selected-venue-title"
+          >
+            開催タイトル
+          </p>
+
+
+          <div class="venue-detail-meta">
+
+            <span
+              id="selectedVenueDay"
+              class="venue-meta-chip"
+            >
+              ―
+            </span>
+
+            <span
+              id="selectedVenuePeriod"
+              class="venue-meta-chip"
+            >
+              ―
+            </span>
+
+          </div>
+
         </div>
+
       </div>
 
-      <div class="status-bar">
-        <div id="fetchStatus" class="fetch-status">データ取得待ち</div>
-        <button id="copyBtn" class="copy-btn" type="button">AI用データをコピー</button>
+
+      <div class="section-heading">
+
+        <div>
+
+          <h3>
+            レース選択
+          </h3>
+
+          <p>
+            1R〜12Rから選択
+          </p>
+
+        </div>
+
       </div>
+
+
+      <div
+        id="raceButtonGrid"
+        class="race-button-grid"
+      >
+
+        <!-- app.jsで1R〜12R生成 -->
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         レース詳細 / 比較ダッシュボード
+         ===================================================== -->
+
+    <section
+      id="raceDetailView"
+      class="view hidden"
+    >
+
+
+      <div class="top-nav">
+
+        <button
+          id="backToRaceListBtn"
+          class="back-btn"
+          type="button"
+        >
+          ← レース一覧
+        </button>
+
+      </div>
+
+
+      <!-- レースヘッダー -->
+
+      <div class="race-detail-header">
+
+        <div>
+
+          <div class="race-title-line">
+
+            <h2
+              id="raceTitle"
+              class="race-title"
+            >
+              徳山 10R
+            </h2>
+
+            <span
+              id="raceGradeBadge"
+              class="grade-badge hidden"
+            >
+              PG1
+            </span>
+
+          </div>
+
+
+          <p
+            id="raceSubtitle"
+            class="race-subtitle"
+          >
+            BOAT RACE公式・実データ
+          </p>
+
+        </div>
+
+
+        <button
+          id="copyBtn"
+          class="primary-btn"
+          type="button"
+        >
+          AI用データをコピー
+        </button>
+
+      </div>
+
+
+      <!-- 取得状態 -->
+
+      <div class="data-status-bar">
+
+        <div
+          id="fetchStatus"
+          class="fetch-status"
+        >
+          データ取得中...
+        </div>
+
+
+        <div
+          id="cacheStatus"
+          class="cache-status"
+        >
+        </div>
+
+      </div>
+
+
+
+      <!-- ===================================================
+           QUICK SUMMARY
+           =================================================== -->
 
       <section class="quick-summary">
+
+
         <article class="quick-card">
-          <span>イン信頼度</span>
-          <strong id="inMark">―</strong>
-          <small id="inText">取得待ち</small>
+
+          <span class="quick-label">
+            イン信頼度
+          </span>
+
+          <strong
+            id="inMark"
+            class="quick-value"
+          >
+            ―
+          </strong>
+
+          <small
+            id="inText"
+            class="quick-note"
+          >
+            取得待ち
+          </small>
+
         </article>
+
+
+
         <article class="quick-card">
-          <span>2号艇の逃がし</span>
-          <strong id="wallMark">―</strong>
-          <small id="wallText">取得待ち</small>
+
+          <span class="quick-label">
+            2号艇の逃がし
+          </span>
+
+          <strong
+            id="wallMark"
+            class="quick-value"
+          >
+            ―
+          </strong>
+
+          <small
+            id="wallText"
+            class="quick-note"
+          >
+            取得待ち
+          </small>
+
         </article>
+
+
+
         <article class="quick-card">
-          <span>攻め警戒</span>
-          <strong id="attackMark">―</strong>
-          <small id="attackText">取得待ち</small>
+
+          <span class="quick-label">
+            攻め警戒
+          </span>
+
+          <strong
+            id="attackMark"
+            class="quick-value"
+          >
+            ―
+          </strong>
+
+          <small
+            id="attackText"
+            class="quick-note"
+          >
+            取得待ち
+          </small>
+
         </article>
+
+
       </section>
+
+
+
+      <!-- ===================================================
+           6艇比較
+           =================================================== -->
 
       <section class="panel compare-panel">
+
+
         <div class="panel-title-row">
+
           <div>
-            <h3>6艇比較</h3>
-            <p>まずここだけ見れば全体像が分かる</p>
+
+            <h3>
+              6艇比較
+            </h3>
+
+            <p>
+              最初にここだけ見れば、レース全体を比較できます
+            </p>
+
           </div>
+
         </div>
-        <div id="compareTableWrap" class="table-wrap">
-          <div class="loading">読み込み中...</div>
+
+
+        <div
+          id="compareTableWrap"
+          class="table-wrap"
+        >
+
+          <div class="loading-panel">
+            データ読み込み中...
+          </div>
+
         </div>
+
+
       </section>
+
+
+
+      <!-- ===================================================
+           選手別データ
+           =================================================== -->
 
       <section class="panel">
+
+
         <div class="panel-title-row">
+
           <div>
-            <h3>選手別データ</h3>
-            <p>気になる艇だけ開いて確認</p>
+
+            <h3>
+              選手別データ
+            </h3>
+
+            <p>
+              気になる艇だけ開いて確認
+            </p>
+
           </div>
-          <button id="toggleAllBtn" class="subtle-btn" type="button">すべて開く</button>
+
+
+          <button
+            id="toggleAllBtn"
+            class="secondary-btn"
+            type="button"
+          >
+            すべて開く
+          </button>
+
         </div>
-        <div id="playerDetails" class="player-details"></div>
+
+
+        <div
+          id="playerDetails"
+          class="player-details"
+        >
+        </div>
+
+
       </section>
+
+
+
+      <!-- ===================================================
+           気象・取得状況
+           =================================================== -->
 
       <section class="bottom-grid">
-        <article class="panel">
-          <h3>気象・水面</h3>
-          <dl id="weatherGrid" class="kv"></dl>
-        </article>
+
 
         <article class="panel">
-          <h3>取得状況</h3>
-          <dl id="sourceGrid" class="kv"></dl>
+
+
+          <div class="panel-title-row">
+
+            <div>
+
+              <h3>
+                気象・水面
+              </h3>
+
+              <p>
+                直前情報
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <dl
+            id="weatherGrid"
+            class="kv-grid"
+          >
+          </dl>
+
+
         </article>
+
+
+
+        <article class="panel">
+
+
+          <div class="panel-title-row">
+
+            <div>
+
+              <h3>
+                取得状況
+              </h3>
+
+              <p>
+                各データソース
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <dl
+            id="sourceGrid"
+            class="kv-grid"
+          >
+          </dl>
+
+
+        </article>
+
+
       </section>
+
+
+
+      <!-- ===================================================
+           AI COPY
+           =================================================== -->
 
       <section class="panel ai-panel">
+
+
         <div class="panel-title-row">
+
           <div>
-            <h3>AI貼り付け用プレビュー</h3>
-            <p>ChatGPT予想用</p>
+
+            <h3>
+              AI貼り付け用プレビュー
+            </h3>
+
+            <p>
+              ChatGPT予想用
+            </p>
+
           </div>
-          <span id="copyState" class="copy-state">未コピー</span>
+
+
+          <span
+            id="copyState"
+            class="copy-state"
+          >
+            未コピー
+          </span>
+
         </div>
-        <textarea id="aiText" readonly></textarea>
+
+
+        <textarea
+          id="aiText"
+          readonly
+          aria-label="AI貼り付け用データ"
+        ></textarea>
+
+
       </section>
+
+
     </section>
+
+
   </main>
 
-  <div id="toast" class="toast">コピーしました</div>
+
+
+  <!-- =======================================================
+       TOAST
+       ======================================================= -->
+
+  <div
+    id="toast"
+    class="toast"
+    role="status"
+    aria-live="polite"
+  >
+    コピーしました
+  </div>
+
+
+
+  <!-- =======================================================
+       SCRIPT
+       ======================================================= -->
+
   <script src="app.js"></script>
+
 </body>
 </html>
