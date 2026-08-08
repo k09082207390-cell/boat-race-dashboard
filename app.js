@@ -1,69 +1,86 @@
 // ============================================================
 // BOAT RACE DASHBOARD
-// BOAT RACE公式 × Cloudflare Worker 接続版
+// BOAT RACE公式 × Cloudflare Worker
+// 統合表示版
 // ============================================================
 
 const API_BASE =
   "https://boat-race-api.k09082207390.workers.dev/";
 
+
+// ============================================================
+// 24場
+// ============================================================
+
 const venues = [
-  ["桐生","5日目","10:47","night"],
-  ["戸田","最終日","10:47",""],
-  ["江戸川","初日","11:14",""],
-  ["平和島","次開催","08/11",""],
+  ["桐生", "night"],
+  ["戸田", ""],
+  ["江戸川", ""],
+  ["平和島", ""],
 
-  ["多摩川","2日目","11:33",""],
-  ["浜名湖","次開催","08/11",""],
-  ["蒲郡","次開催","08/10","night"],
-  ["常滑","次開催","08/10",""],
+  ["多摩川", ""],
+  ["浜名湖", ""],
+  ["蒲郡", "night"],
+  ["常滑", ""],
 
-  ["津","5日目","10:28",""],
-  ["三国","最終日","08:32",""],
-  ["びわこ","次開催","08/15",""],
-  ["住之江","最終日","15:17","night"],
+  ["津", ""],
+  ["三国", ""],
+  ["びわこ", ""],
+  ["住之江", "night"],
 
-  ["尼崎","初日","10:33",""],
-  ["鳴門","5日目","08:40",""],
-  ["丸亀","3日目","15:25","night"],
-  ["児島","2日目","10:46",""],
+  ["尼崎", ""],
+  ["鳴門", ""],
+  ["丸亀", "night"],
+  ["児島", ""],
 
-  ["宮島","次開催","08/14",""],
-  ["徳山","4日目","10:38","g1"],
-  ["下関","次開催","08/11","night"],
-  ["若松","3日目","15:29","night"],
+  ["宮島", ""],
+  ["徳山", "g1"],
+  ["下関", "night"],
+  ["若松", "night"],
 
-  ["芦屋","次開催","08/10",""],
-  ["福岡","次開催","08/12",""],
-  ["唐津","初日","08:48",""],
-  ["大村","4日目","15:20","night"]
+  ["芦屋", ""],
+  ["福岡", ""],
+  ["唐津", ""],
+  ["大村", "night"]
 ];
 
+
 const PLACE_NUMBERS = {
-  "桐生":1,
-  "戸田":2,
-  "江戸川":3,
-  "平和島":4,
-  "多摩川":5,
-  "浜名湖":6,
-  "蒲郡":7,
-  "常滑":8,
-  "津":9,
-  "三国":10,
-  "びわこ":11,
-  "住之江":12,
-  "尼崎":13,
-  "鳴門":14,
-  "丸亀":15,
-  "児島":16,
-  "宮島":17,
-  "徳山":18,
-  "下関":19,
-  "若松":20,
-  "芦屋":21,
-  "福岡":22,
-  "唐津":23,
-  "大村":24
+  "桐生": 1,
+  "戸田": 2,
+  "江戸川": 3,
+  "平和島": 4,
+
+  "多摩川": 5,
+  "浜名湖": 6,
+  "蒲郡": 7,
+  "常滑": 8,
+
+  "津": 9,
+  "三国": 10,
+  "びわこ": 11,
+  "住之江": 12,
+
+  "尼崎": 13,
+  "鳴門": 14,
+  "丸亀": 15,
+  "児島": 16,
+
+  "宮島": 17,
+  "徳山": 18,
+  "下関": 19,
+  "若松": 20,
+
+  "芦屋": 21,
+  "福岡": 22,
+  "唐津": 23,
+  "大村": 24
 };
+
+
+// ============================================================
+// DOM
+// ============================================================
 
 const venueGrid =
   document.getElementById("venueGrid");
@@ -80,11 +97,22 @@ const detailView =
 const raceGrid =
   document.getElementById("raceGrid");
 
-let selectedVenue = "徳山";
-let selectedRace = 10;
 
-let samplePlayers = [];
-let currentRaceData = null;
+// ============================================================
+// STATE
+// ============================================================
+
+let selectedVenue =
+  "徳山";
+
+let selectedRace =
+  1;
+
+let currentRaceData =
+  null;
+
+let samplePlayers =
+  [];
 
 
 // ============================================================
@@ -92,27 +120,38 @@ let currentRaceData = null;
 // ============================================================
 
 function todayString() {
-  const d = new Date();
+
+  const d =
+    new Date();
 
   return (
     `${d.getFullYear()}/` +
-    `${String(d.getMonth()+1).padStart(2,"0")}/` +
-    `${String(d.getDate()).padStart(2,"0")}`
+    `${String(d.getMonth() + 1).padStart(2, "0")}/` +
+    `${String(d.getDate()).padStart(2, "0")}`
   );
 }
 
+
 function todayApiString() {
-  const d = new Date();
+
+  const d =
+    new Date();
 
   return (
     `${d.getFullYear()}` +
-    `${String(d.getMonth()+1).padStart(2,"0")}` +
-    `${String(d.getDate()).padStart(2,"0")}`
+    `${String(d.getMonth() + 1).padStart(2, "0")}` +
+    `${String(d.getDate()).padStart(2, "0")}`
   );
 }
 
-document.getElementById("todayLabel").textContent =
-  todayString();
+
+const todayLabel =
+  document.getElementById("todayLabel");
+
+if (todayLabel) {
+  todayLabel.textContent =
+    todayString();
+}
 
 
 // ============================================================
@@ -121,41 +160,68 @@ document.getElementById("todayLabel").textContent =
 
 function renderVenues() {
 
-  venueGrid.innerHTML = "";
+  if (!venueGrid) {
+    return;
+  }
+
+  venueGrid.innerHTML =
+    "";
 
   venues.forEach(v => {
 
-    const [name,day,time,type] = v;
+    const [
+      name,
+      type
+    ] = v;
 
-    const b =
-      document.createElement("button");
+    const btn =
+      document.createElement(
+        "button"
+      );
 
-    b.className =
+    btn.className =
       "venue-card";
 
-    b.innerHTML = `
-      <span class="venue-name">${name}</span>
+    btn.innerHTML = `
+      <span class="venue-name">
+        ${name}
+      </span>
 
       <span class="venue-body">
-        <strong>${day}</strong>
-        <small>${time}</small>
+
+        <strong>
+          レース選択
+        </strong>
 
         ${
           type
-            ? `<span class="badge ${type}">
-                 ${type === "night" ? "ナイター" : "G1"}
-               </span>`
-            : `<span class="badge">一般</span>`
+            ? `
+              <span class="badge ${type}">
+                ${
+                  type === "night"
+                    ? "ナイター"
+                    : "G1"
+                }
+              </span>
+            `
+            : `
+              <span class="badge">
+                一般
+              </span>
+            `
         }
+
       </span>
     `;
 
-    b.addEventListener(
+    btn.addEventListener(
       "click",
-      () => openVenue(name,day)
+      () => openVenue(name)
     );
 
-    venueGrid.appendChild(b);
+    venueGrid.appendChild(
+      btn
+    );
   });
 }
 
@@ -164,22 +230,48 @@ function renderVenues() {
 // VENUE
 // ============================================================
 
-function openVenue(name,day) {
+function openVenue(
+  name
+) {
 
-  selectedVenue = name;
+  selectedVenue =
+    name;
 
-  document.getElementById(
-    "selectedVenueTitle"
-  ).textContent = name;
+  const title =
+    document.getElementById(
+      "selectedVenueTitle"
+    );
 
-  document.getElementById(
-    "selectedVenueMeta"
-  ).textContent =
-    `${day}・レースを選択`;
+  const meta =
+    document.getElementById(
+      "selectedVenueMeta"
+    );
 
-  venueView.classList.add("hidden");
-  detailView.classList.add("hidden");
-  raceView.classList.remove("hidden");
+
+  if (title) {
+    title.textContent =
+      name;
+  }
+
+
+  if (meta) {
+    meta.textContent =
+      "レースを選択";
+  }
+
+
+  venueView?.classList.add(
+    "hidden"
+  );
+
+  detailView?.classList.add(
+    "hidden"
+  );
+
+  raceView?.classList.remove(
+    "hidden"
+  );
+
 
   renderRaces();
 }
@@ -191,25 +283,41 @@ function openVenue(name,day) {
 
 function renderRaces() {
 
-  raceGrid.innerHTML = "";
+  if (!raceGrid) {
+    return;
+  }
 
-  for (let i=1; i<=12; i++) {
 
-    const b =
-      document.createElement("button");
+  raceGrid.innerHTML =
+    "";
 
-    b.className =
+
+  for (
+    let i = 1;
+    i <= 12;
+    i++
+  ) {
+
+    const btn =
+      document.createElement(
+        "button"
+      );
+
+    btn.className =
       "race-btn";
 
-    b.textContent =
+    btn.textContent =
       `${i}R`;
 
-    b.addEventListener(
+    btn.addEventListener(
       "click",
-      () => openRace(i)
+      () =>
+        openRace(i)
     );
 
-    raceGrid.appendChild(b);
+    raceGrid.appendChild(
+      btn
+    );
   }
 }
 
@@ -218,244 +326,432 @@ function renderRaces() {
 // OPEN RACE
 // ============================================================
 
-async function openRace(r) {
+async function openRace(
+  raceNo
+) {
 
-  selectedRace = r;
+  selectedRace =
+    raceNo;
 
-  raceView.classList.add("hidden");
-  detailView.classList.remove("hidden");
 
-  document.getElementById(
-    "raceTitle"
-  ).textContent =
-    `${selectedVenue} ${r}R`;
+  raceView?.classList.add(
+    "hidden"
+  );
 
-  document.getElementById(
-    "raceMeta"
-  ).textContent =
-    "実データを取得中...";
+  detailView?.classList.remove(
+    "hidden"
+  );
 
-  document.getElementById(
-    "fetchStatus"
-  ).textContent =
-    "BOAT RACE公式から取得中...";
+
+  setText(
+    "raceTitle",
+    `${selectedVenue} ${raceNo}R`
+  );
+
+
+  setText(
+    "raceMeta",
+    "実データを取得中..."
+  );
+
+
+  setText(
+    "fetchStatus",
+    "BOAT RACE公式から取得中..."
+  );
+
 
   clearDetail();
+
 
   try {
 
     const placeNo =
-      PLACE_NUMBERS[selectedVenue];
+      PLACE_NUMBERS[
+        selectedVenue
+      ];
+
 
     if (!placeNo) {
+
       throw new Error(
         "場番号が見つかりません"
       );
     }
 
+
     const hiduke =
       todayApiString();
+
 
     const apiUrl =
       `${API_BASE}` +
       `?hiduke=${hiduke}` +
       `&place_no=${placeNo}` +
-      `&race_no=${r}`;
+      `&race_no=${raceNo}`;
 
-    const res =
-      await fetch(apiUrl);
 
-    const data =
-      await res.json();
+    const response =
+      await fetch(
+        apiUrl,
+        {
+          cache:
+            "no-store"
+        }
+      );
 
-    if (!res.ok || !data.ok) {
+
+    let data;
+
+
+    try {
+
+      data =
+        await response.json();
+
+    } catch {
+
       throw new Error(
-        data.error ||
-        `HTTP ${res.status}`
+        "APIレスポンスをJSONとして読み込めませんでした"
       );
     }
 
-    currentRaceData = data;
+
+    if (
+      !response.ok
+      ||
+      !data.ok
+    ) {
+
+      throw new Error(
+        data.error
+        ||
+        `HTTP ${response.status}`
+      );
+    }
+
+
+    currentRaceData =
+      data;
+
 
     samplePlayers =
-      data.players.map(p => ({
-
-        lane:
-          p.lane,
-
-        name:
-          p.name || "-",
-
-        grade:
-          p.class || "-",
-
-        reg:
-          String(
-            p.number ?? "-"
-          ),
-
-        branch:
-          p.branch || "-",
-
-        hometown:
-          p.hometown || "-",
-
-        age:
-          p.age ?? "-",
-
-        weight:
-          p.weight ?? "-",
-
-
-        // 全国
-        nat:
-          val(p.national?.winRate),
-
-        nat2:
-          val(p.national?.secondRate),
-
-        nat3:
-          val(p.national?.thirdRate),
-
-
-        // 当地
-        local:
-          val(p.local?.winRate),
-
-        local2:
-          val(p.local?.secondRate),
-
-        local3:
-          val(p.local?.thirdRate),
-
-
-        // ST
-        avgst:
-          p.start?.average ?? "-",
-
-        cst:
-          p.start?.courseAverage ?? "-",
-
-        season:
-          p.start?.currentSeriesAverage ?? "-",
-
-        est:
-          "-",
-
-        flying:
-          Number(
-            p.start?.flying || 0
-          ),
-
-        late:
-          Number(
-            p.start?.late || 0
-          ),
-
-
-        // モーター
-        motor:
-          String(
-            p.motor?.number ?? "-"
-          ),
-
-        m2:
-          val(
-            p.motor?.secondRate
-          ),
-
-        m3:
-          val(
-            p.motor?.thirdRate
-          ),
-
-
-        // ボート
-        boat:
-          String(
-            p.boat?.number ?? "-"
-          ),
-
-        b2:
-          val(
-            p.boat?.secondRate
-          ),
-
-        b3:
-          val(
-            p.boat?.thirdRate
-          ),
-
-
-        // 未取得
-        pre:
-          "-",
-
-        pointRate:
-          "-",
-
-        r2:
-          "-",
-
-        r3:
-          "-",
-
-        tilt:
-          "-"
-      }));
+      data.players.map(
+        p =>
+          normalizePlayer(p)
+      );
 
 
     const race =
-      data.race || {};
+      data.race
+      || {};
 
-    document.getElementById(
-      "raceTitle"
-    ).textContent =
-      `${race.place || selectedVenue} ` +
-      `${race.raceNo || r}R`;
 
-    document.getElementById(
-      "raceMeta"
-    ).textContent =
-      "BOAT RACE公式 実データ";
+    setText(
+      "raceTitle",
+      `${
+        race.place
+        || selectedVenue
+      } ${
+        race.raceNo
+        || raceNo
+      }R`
+    );
 
-    document.getElementById(
-      "fetchStatus"
-    ).textContent =
-      `公式データ取得成功：${samplePlayers.length}艇`;
 
-    updateConfidence();
+    setText(
+      "raceMeta",
+      `${
+        data.source
+        || "BOAT RACE公式"
+      }・実データ`
+    );
+
+
+    const beforeText =
+      data.before?.available
+        ? "・直前情報あり"
+        : "・直前情報は未公開";
+
+
+    setText(
+      "fetchStatus",
+      `取得成功：${samplePlayers.length}艇${beforeText}`
+    );
+
+
+    renderWeather();
 
     renderAll();
 
-  } catch(error) {
 
-    console.error(error);
+  } catch (
+    error
+  ) {
 
-    document.getElementById(
-      "fetchStatus"
-    ).textContent =
-      `取得失敗：${error.message}`;
+    console.error(
+      error
+    );
 
-    document.getElementById(
-      "raceMeta"
-    ).textContent =
-      "データ取得に失敗しました";
 
-    document.getElementById(
-      "playerCards"
-    ).innerHTML = `
-      <div class="panel">
-        データ取得エラー<br>
-        ${escapeHtml(error.message)}
-      </div>
-    `;
+    setText(
+      "fetchStatus",
+      `取得失敗：${error.message}`
+    );
 
-    document.getElementById(
-      "aiText"
-    ).value =
-      `データ取得エラー\n${error.message}`;
+
+    setText(
+      "raceMeta",
+      "データ取得に失敗しました"
+    );
+
+
+    const cards =
+      document.getElementById(
+        "playerCards"
+      );
+
+
+    if (cards) {
+
+      cards.innerHTML = `
+        <div class="panel">
+          データ取得エラー
+          <br>
+          ${escapeHtml(
+            error.message
+          )}
+        </div>
+      `;
+    }
+
+
+    const ai =
+      document.getElementById(
+        "aiText"
+      );
+
+
+    if (ai) {
+
+      ai.value =
+        `データ取得エラー\n${error.message}`;
+    }
   }
+}
+
+
+// ============================================================
+// NORMALIZE PLAYER
+// ============================================================
+
+function normalizePlayer(
+  p
+) {
+
+  return {
+
+    lane:
+      p.lane,
+
+    number:
+      p.number,
+
+    name:
+      p.name
+      || "-",
+
+    grade:
+      p.class
+      || "-",
+
+    branch:
+      p.branch
+      || "-",
+
+    hometown:
+      p.hometown
+      || "-",
+
+    age:
+      value(
+        p.age
+      ),
+
+    weight:
+      value(
+        p.weight
+      ),
+
+
+    // --------------------------------
+    // ST
+    // --------------------------------
+
+    avgST:
+      p.start?.average
+      ?? "-",
+
+    flying:
+      Number(
+        p.start?.flying
+        || 0
+      ),
+
+    late:
+      Number(
+        p.start?.late
+        || 0
+      ),
+
+    seriesST:
+      p.start?.currentSeriesAverage
+      ??
+      p.series?.averageST
+      ??
+      "-",
+
+
+    // --------------------------------
+    // 全国
+    // --------------------------------
+
+    nationalWin:
+      value(
+        p.national?.winRate
+      ),
+
+    national2:
+      value(
+        p.national?.secondRate
+      ),
+
+    national3:
+      value(
+        p.national?.thirdRate
+      ),
+
+
+    // --------------------------------
+    // 当地
+    // --------------------------------
+
+    localWin:
+      value(
+        p.local?.winRate
+      ),
+
+    local2:
+      value(
+        p.local?.secondRate
+      ),
+
+    local3:
+      value(
+        p.local?.thirdRate
+      ),
+
+
+    // --------------------------------
+    // モーター
+    // --------------------------------
+
+    motor:
+      value(
+        p.motor?.number
+      ),
+
+    motor2:
+      value(
+        p.motor?.secondRate
+      ),
+
+    motor3:
+      value(
+        p.motor?.thirdRate
+      ),
+
+
+    // --------------------------------
+    // ボート
+    // --------------------------------
+
+    boat:
+      value(
+        p.boat?.number
+      ),
+
+    boat2:
+      value(
+        p.boat?.secondRate
+      ),
+
+    boat3:
+      value(
+        p.boat?.thirdRate
+      ),
+
+
+    // --------------------------------
+    // 今節
+    // --------------------------------
+
+    pointRate:
+      value(
+        p.series?.pointRate
+      ),
+
+    pointRank:
+      value(
+        p.series?.pointRank
+      ),
+
+    raceCount:
+      value(
+        p.series?.raceCount
+      ),
+
+    seriesRaces:
+      Array.isArray(
+        p.series?.races
+      )
+        ? p.series.races
+        : [],
+
+
+    // --------------------------------
+    // 直前
+    // --------------------------------
+
+    beforeAvailable:
+      Boolean(
+        p.before?.available
+      ),
+
+    exhibitionTime:
+      value(
+        p.before?.exhibitionTime
+      ),
+
+    tilt:
+      value(
+        p.before?.tilt
+      ),
+
+    startCourse:
+      value(
+        p.before?.startCourse
+      ),
+
+    startST:
+      p.before?.startST
+      ?? "-",
+
+    startOrder:
+      value(
+        p.before?.startOrder
+      )
+  };
 }
 
 
@@ -465,25 +761,36 @@ async function openRace(r) {
 
 function clearDetail() {
 
-  document.getElementById(
-    "playerCards"
-  ).innerHTML = "";
-
-  document.getElementById(
-    "motorTable"
-  ).innerHTML = "";
-
-  document.getElementById(
-    "startTable"
-  ).innerHTML = "";
-
-  document.getElementById(
+  [
+    "playerCards",
+    "motorTable",
+    "startTable",
     "liveTable"
-  ).innerHTML = "";
+  ]
+    .forEach(
+      id => {
 
-  document.getElementById(
-    "aiText"
-  ).value = "";
+        const el =
+          document.getElementById(
+            id
+          );
+
+        if (el) {
+          el.innerHTML = "";
+        }
+      }
+    );
+
+
+  const ai =
+    document.getElementById(
+      "aiText"
+    );
+
+
+  if (ai) {
+    ai.value = "";
+  }
 }
 
 
@@ -493,93 +800,247 @@ function clearDetail() {
 
 function renderPlayerCards() {
 
-  const el =
+  const container =
     document.getElementById(
       "playerCards"
     );
 
-  el.innerHTML = "";
 
-  samplePlayers.forEach(p => {
+  if (!container) {
+    return;
+  }
 
-    el.insertAdjacentHTML(
-      "beforeend",
-      `
-      <article class="player-card">
 
-        <div class="player-head">
-          <span class="lane l${p.lane}">
-            ${p.lane}
-          </span>
+  container.innerHTML =
+    "";
 
-          <span>${p.grade}</span>
-        </div>
 
-        <div class="player-body">
+  samplePlayers.forEach(
+    p => {
 
-          <div class="player-name">
-            ${p.name}
-          </div>
+      const races =
+        buildSeriesHistoryHtml(
+          p
+        );
 
-          <div class="mini-grid">
 
-            <div class="metric">
-              登録
-              <b>${p.reg}</b>
-            </div>
+      const motorMark =
+        motorEvaluation(
+          p
+        );
 
-            <div class="metric">
-              支部
-              <b>${p.branch}</b>
-            </div>
 
-            <div class="metric">
-              全国
-              <b>${p.nat}</b>
-            </div>
+      const stMark =
+        startEvaluation(
+          p
+        );
 
-            <div class="metric">
-              当地
-              <b>${p.local}</b>
-            </div>
 
-            <div class="metric">
-              平均ST
-              <b>${p.avgst}</b>
-            </div>
+      container.insertAdjacentHTML(
+        "beforeend",
+        `
+        <article class="player-card">
 
-            <div class="metric">
-              F
-              <b>
-                ${p.flying > 0
-                  ? `F${p.flying}`
-                  : "F0"}
-              </b>
-            </div>
+          <div class="player-head">
 
-            <div class="metric">
-              モーター
-              <b>${p.motor}号</b>
-            </div>
+            <span class="lane l${p.lane}">
+              ${p.lane}
+            </span>
 
-            <div class="metric">
-              2連率
-              <b>${pct(p.m2)}</b>
-            </div>
+            <span>
+              ${escapeHtml(p.grade)}
+            </span>
 
           </div>
 
-        </div>
 
-      </article>
-      `
-    );
-  });
+          <div class="player-body">
+
+            <div class="player-name">
+              ${escapeHtml(p.name)}
+            </div>
+
+
+            <div class="mini-grid">
+
+              <div class="metric">
+                登録
+                <b>${p.number}</b>
+              </div>
+
+              <div class="metric">
+                支部
+                <b>${escapeHtml(p.branch)}</b>
+              </div>
+
+              <div class="metric">
+                全国
+                <b>${p.nationalWin}</b>
+              </div>
+
+              <div class="metric">
+                当地
+                <b>${p.localWin}</b>
+              </div>
+
+
+              <div class="metric">
+                平均ST
+                <b>${p.avgST}</b>
+              </div>
+
+              <div class="metric">
+                今節ST
+                <b>${p.seriesST}</b>
+              </div>
+
+              <div class="metric">
+                F/L
+                <b>
+                  F${p.flying}
+                  /
+                  L${p.late}
+                </b>
+              </div>
+
+              <div class="metric">
+                ST評価
+                <b>${stMark}</b>
+              </div>
+
+
+              <div class="metric">
+                モーター
+                <b>${p.motor}号</b>
+              </div>
+
+              <div class="metric">
+                モーター2連
+                <b>${pct(p.motor2)}</b>
+              </div>
+
+              <div class="metric">
+                モーター3連
+                <b>${pct(p.motor3)}</b>
+              </div>
+
+              <div class="metric">
+                モーター評価
+                <b>${motorMark}</b>
+              </div>
+
+
+              <div class="metric">
+                得点率
+                <b>${p.pointRate}</b>
+              </div>
+
+              <div class="metric">
+                得点順位
+                <b>
+                  ${
+                    p.pointRank !== "-"
+                      ? `${p.pointRank}位`
+                      : "-"
+                  }
+                </b>
+              </div>
+
+              <div class="metric">
+                展示タイム
+                <b>${displayWaiting(p.exhibitionTime)}</b>
+              </div>
+
+              <div class="metric">
+                展示ST
+                <b>${displayWaiting(p.startST)}</b>
+              </div>
+
+            </div>
+
+
+            <div style="
+              margin-top:12px;
+              padding-top:10px;
+              border-top:1px solid rgba(255,255,255,.08);
+            ">
+
+              <div style="
+                font-size:12px;
+                opacity:.7;
+                margin-bottom:6px;
+              ">
+                今節成績
+              </div>
+
+              <div style="
+                font-size:12px;
+                line-height:1.8;
+              ">
+                ${races}
+              </div>
+
+            </div>
+
+          </div>
+
+        </article>
+        `
+      );
+    }
+  );
 }
 
 
 // ============================================================
-// MOTOR TAB
+// 今節履歴 HTML
+// ============================================================
+
+function buildSeriesHistoryHtml(
+  p
+) {
+
+  if (
+    !p.seriesRaces.length
+  ) {
+
+    return `
+      <span style="opacity:.6">
+        データなし
+      </span>
+    `;
+  }
+
+
+  return p.seriesRaces
+    .map(
+      r => {
+
+        const result =
+          r.result
+          ?? "-";
+
+
+        return `
+          <span style="white-space:nowrap;">
+            ${r.day}日目
+            ${r.raceNo}R
+            /
+            ${r.course ?? "-"}C
+            /
+            ST ${r.st ?? "-"}
+            /
+            ${result}着
+          </span>
+        `;
+      }
+    )
+    .join("<br>");
+}
+
+
+// ============================================================
+// MOTOR TABLE
 // ============================================================
 
 function renderMotor() {
@@ -589,63 +1050,68 @@ function renderMotor() {
       "motorTable"
     );
 
-  tbody.innerHTML = "";
 
-  samplePlayers.forEach(p => {
+  if (!tbody) {
+    return;
+  }
 
-    const mark =
-      Number(p.m2) >= 50
-        ? "🔥"
-        : "";
 
-    tbody.insertAdjacentHTML(
-      "beforeend",
-      `
-      <tr>
+  tbody.innerHTML =
+    "";
 
-        <td>
-          <span class="lane l${p.lane}">
-            ${p.lane}
-          </span>
-        </td>
 
-        <td>
-          ${p.motor}号
-        </td>
+  samplePlayers.forEach(
+    p => {
 
-        <td>
-          ${pct(p.m2)}
-        </td>
+      tbody.insertAdjacentHTML(
+        "beforeend",
+        `
+        <tr>
 
-        <td>
-          ${pct(p.m3)}
-        </td>
+          <td>
+            <span class="lane l${p.lane}">
+              ${p.lane}
+            </span>
+          </td>
 
-        <td>
-          ${p.boat}号
-        </td>
+          <td>
+            ${p.motor}号
+          </td>
 
-        <td>
-          ${pct(p.b2)}
-        </td>
+          <td>
+            ${pct(p.motor2)}
+          </td>
 
-        <td>
-          -
-        </td>
+          <td>
+            ${pct(p.motor3)}
+          </td>
 
-        <td>
-          ${mark}
-        </td>
+          <td>
+            ${p.boat}号
+          </td>
 
-      </tr>
-      `
-    );
-  });
+          <td>
+            ${pct(p.boat2)}
+          </td>
+
+          <td>
+            ${pct(p.boat3)}
+          </td>
+
+          <td>
+            ${motorEvaluation(p)}
+          </td>
+
+        </tr>
+        `
+      );
+    }
+  );
 }
 
 
 // ============================================================
-// ST TAB
+// START TABLE
 // ============================================================
 
 function renderStart() {
@@ -655,68 +1121,80 @@ function renderStart() {
       "startTable"
     );
 
-  tbody.innerHTML = "";
 
-  samplePlayers.forEach(p => {
+  if (!tbody) {
+    return;
+  }
 
-    tbody.insertAdjacentHTML(
-      "beforeend",
-      `
-      <tr>
 
-        <td>
-          <span class="lane l${p.lane}">
-            ${p.lane}
-          </span>
-        </td>
+  tbody.innerHTML =
+    "";
 
-        <td>${p.avgst}</td>
 
-        <td>
-          ${
-            p.cst !== "-"
-              ? p.cst
-              : "取得待ち"
-          }
-        </td>
+  samplePlayers.forEach(
+    p => {
 
-        <td>
-          ${
-            p.season !== "-"
-              ? p.season
-              : "取得待ち"
-          }
-        </td>
+      tbody.insertAdjacentHTML(
+        "beforeend",
+        `
+        <tr>
 
-        <td>
-          取得待ち
-        </td>
+          <td>
+            <span class="lane l${p.lane}">
+              ${p.lane}
+            </span>
+          </td>
 
-        <td>
-          -
-        </td>
+          <td>
+            ${p.avgST}
+          </td>
 
-        <td>
-          ${
-            p.flying > 0
-              ? `F${p.flying}`
-              : "F0"
-          }
-        </td>
+          <td>
+            ${p.seriesST}
+          </td>
 
-        <td>
-          ${stJudge(p)}
-        </td>
+          <td>
+            ${
+              p.pointRate !== "-"
+                ? p.pointRate
+                : "-"
+            }
+          </td>
 
-      </tr>
-      `
-    );
-  });
+          <td>
+            ${
+              p.pointRank !== "-"
+                ? `${p.pointRank}位`
+                : "-"
+            }
+          </td>
+
+          <td>
+            ${
+              p.flying > 0
+                ? `F${p.flying}`
+                : "F0"
+            }
+          </td>
+
+          <td>
+            ${displayWaiting(p.startST)}
+          </td>
+
+          <td>
+            ${startEvaluation(p)}
+          </td>
+
+        </tr>
+        `
+      );
+    }
+  );
 }
 
 
 // ============================================================
-// LIVE TAB
+// LIVE TABLE
 // ============================================================
 
 function renderLive() {
@@ -726,62 +1204,343 @@ function renderLive() {
       "liveTable"
     );
 
-  tbody.innerHTML = "";
 
-  samplePlayers.forEach(p => {
+  if (!tbody) {
+    return;
+  }
 
-    tbody.insertAdjacentHTML(
-      "beforeend",
-      `
-      <tr>
-        <td>
-          <span class="lane l${p.lane}">
-            ${p.lane}
-          </span>
-        </td>
 
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-        <td>取得待ち</td>
-      </tr>
-      `
-    );
-  });
+  tbody.innerHTML =
+    "";
+
+
+  samplePlayers.forEach(
+    p => {
+
+      tbody.insertAdjacentHTML(
+        "beforeend",
+        `
+        <tr>
+
+          <td>
+            <span class="lane l${p.lane}">
+              ${p.lane}
+            </span>
+          </td>
+
+          <td>
+            ${displayWaiting(p.startCourse)}
+          </td>
+
+          <td>
+            ${displayWaiting(p.startST)}
+          </td>
+
+          <td>
+            ${displayWaiting(p.exhibitionTime)}
+          </td>
+
+          <td>
+            ${displayWaiting(p.tilt)}
+          </td>
+
+          <td>
+            ${
+              p.startOrder !== "-"
+                ? p.startOrder
+                : "-"
+            }
+          </td>
+
+          <td>
+            ${
+              p.beforeAvailable
+                ? "取得済"
+                : "待機中"
+            }
+          </td>
+
+          <td>
+            ${
+              liveEvaluation(p)
+            }
+          </td>
+
+        </tr>
+        `
+      );
+    }
+  );
 }
 
 
 // ============================================================
-// ST JUDGE
+// WEATHER
 // ============================================================
 
-function stJudge(p) {
+function renderWeather() {
+
+  const race =
+    currentRaceData?.race
+    || {};
+
+
+  const weather =
+    race.weather
+    || {};
+
+
+  /*
+   * 既存HTMLのsummary内ddを使用
+   */
+  const items =
+    document.querySelectorAll(
+      "#summary .kv dd"
+    );
+
+
+  if (
+    items.length >= 5
+  ) {
+
+    items[0].textContent =
+      weather.windDirection
+      ??
+      "取得待ち";
+
+
+    items[1].textContent =
+      weather.windSpeed !== null
+      &&
+      weather.windSpeed !== undefined
+
+        ? `${weather.windSpeed}m`
+
+        : "取得待ち";
+
+
+    items[2].textContent =
+      weather.wave !== null
+      &&
+      weather.wave !== undefined
+
+        ? `${weather.wave}cm`
+
+        : "取得待ち";
+
+
+    items[3].textContent =
+      weather.airTemperature !== null
+      &&
+      weather.airTemperature !== undefined
+
+        ? `${weather.airTemperature}℃`
+
+        : "取得待ち";
+
+
+    items[4].textContent =
+      weather.waterTemperature !== null
+      &&
+      weather.waterTemperature !== undefined
+
+        ? `${weather.waterTemperature}℃`
+
+        : "取得待ち";
+  }
+
+
+  updateConfidence();
+}
+
+
+// ============================================================
+// MOTOR EVALUATION
+// ============================================================
+
+function motorEvaluation(
+  p
+) {
+
+  const r2 =
+    numberOrNull(
+      p.motor2
+    );
+
+
+  const r3 =
+    numberOrNull(
+      p.motor3
+    );
+
+
+  if (
+    r2 !== null
+    &&
+    r2 >= 50
+  ) {
+
+    return "🔥 強";
+  }
+
+
+  if (
+    r2 !== null
+    &&
+    r2 >= 40
+  ) {
+
+    return "◎";
+  }
+
+
+  if (
+    r3 !== null
+    &&
+    r3 >= 60
+  ) {
+
+    return "○";
+  }
+
+
+  if (
+    r2 !== null
+    &&
+    r2 < 30
+  ) {
+
+    return "△";
+  }
+
+
+  return "○";
+}
+
+
+// ============================================================
+// ST EVALUATION
+// ============================================================
+
+function startEvaluation(
+  p
+) {
 
   if (
     p.flying > 0
   ) {
+
     return "△ F持ち";
   }
 
-  const st =
-    Number(p.avgst);
+
+  const series =
+    stNumber(
+      p.seriesST
+    );
+
+
+  const normal =
+    stNumber(
+      p.avgST
+    );
+
 
   if (
-    !Number.isNaN(st)
-    && st <= 0.13
+    series !== null
+    &&
+    series <= 0.10
   ) {
+
+    return "🔥 今節踏めてる";
+  }
+
+
+  if (
+    series !== null
+    &&
+    series <= 0.13
+  ) {
+
+    return "◎ 今節ST良";
+  }
+
+
+  if (
+    normal !== null
+    &&
+    normal <= 0.13
+  ) {
+
     return "◎ ST速い";
   }
 
+
   if (
-    !Number.isNaN(st)
-    && st >= 0.19
+    normal !== null
+    &&
+    normal >= 0.19
   ) {
+
     return "△ ST遅め";
   }
+
+
+  return "○";
+}
+
+
+// ============================================================
+// LIVE EVALUATION
+// ============================================================
+
+function liveEvaluation(
+  p
+) {
+
+  if (
+    !p.beforeAvailable
+  ) {
+
+    return "取得待ち";
+  }
+
+
+  const st =
+    exhibitionSTNumber(
+      p.startST
+    );
+
+
+  if (
+    st !== null
+    &&
+    st < 0
+  ) {
+
+    return "⚠ F展示";
+  }
+
+
+  if (
+    st !== null
+    &&
+    st <= 0.05
+  ) {
+
+    return "🔥 踏み込み";
+  }
+
+
+  if (
+    st !== null
+    &&
+    st <= 0.10
+  ) {
+
+    return "◎";
+  }
+
 
   return "○";
 }
@@ -798,19 +1557,40 @@ function updateConfidence() {
       ".confidence-score"
     );
 
+
   const bar =
     document.querySelector(
       ".confidence-bar span"
     );
 
+
+  const one =
+    samplePlayers.find(
+      p =>
+        p.lane === 1
+    );
+
+
+  /*
+   * まだ本格的なイン逃げ率を取得していないので
+   * 仮の信頼度スコアは出さない。
+   */
   if (score) {
+
     score.textContent =
       "—";
   }
 
+
   if (bar) {
+
     bar.style.width =
       "0%";
+  }
+
+
+  if (!one) {
+    return;
   }
 }
 
@@ -821,60 +1601,216 @@ function updateConfidence() {
 
 function buildAIText() {
 
-  let t =
-    `【${selectedVenue} ${selectedRace}R】\n`;
-
-  t +=
-    `BOAT RACE公式 実データ\n\n`;
+  const race =
+    currentRaceData?.race
+    || {};
 
 
-  samplePlayers.forEach(p => {
-
-    t +=
-      `■${p.lane}号艇 ${p.name} ${p.grade}\n`;
-
-    t +=
-      `登録：${p.reg} / 支部：${p.branch} / 出身：${p.hometown}\n`;
-
-    t +=
-      `年齢：${p.age}歳 / 体重：${p.weight}kg\n`;
-
-    t +=
-      `全国勝率：${p.nat}` +
-      ` / 2連率：${pct(p.nat2)}` +
-      ` / 3連率：${pct(p.nat3)}\n`;
-
-    t +=
-      `当地勝率：${p.local}` +
-      ` / 2連率：${pct(p.local2)}` +
-      ` / 3連率：${pct(p.local3)}\n`;
-
-    t +=
-      `平均ST：${p.avgst}` +
-      ` / F：${p.flying}` +
-      ` / L：${p.late}\n`;
-
-    t +=
-      `モーター：${p.motor}号` +
-      ` / 2連率：${pct(p.m2)}\n`;
-
-    t +=
-      `ボート：${p.boat}号` +
-      ` / 2連率：${pct(p.b2)}\n`;
-
-    t += "\n";
-  });
+  const weather =
+    race.weather
+    || {};
 
 
-  t +=
-    "【未取得データ】\n" +
-    "コース別ST / 今節ST / 今節得点率 / 前検タイム\n" +
-    "展示ST / 展示タイム / 周回展示 / 直線 / 回り足\n" +
-    "風向 / 風速 / 波高 / 気温 / 水温\n" +
-    "モーター直近期間成績";
+  let text =
+    "";
 
 
-  return t;
+  text +=
+    `【${race.place || selectedVenue} ${race.raceNo || selectedRace}R】\n`;
+
+
+  text +=
+    `日付：${formatApiDate(race.date)}\n`;
+
+
+  text +=
+    `取得元：BOAT RACE公式\n`;
+
+
+  text +=
+    `直前情報：${
+      currentRaceData?.before?.available
+        ? "公開済"
+        : "未公開"
+    }\n`;
+
+
+  text +=
+    "\n";
+
+
+  // =========================================================
+  // 水面
+  // =========================================================
+
+  text +=
+    "【水面・気象】\n";
+
+
+  text +=
+    `天候：${weather.weather ?? "取得待ち"}\n`;
+
+
+  text +=
+    `気温：${unit(weather.airTemperature, "℃")}\n`;
+
+
+  text +=
+    `水温：${unit(weather.waterTemperature, "℃")}\n`;
+
+
+  text +=
+    `風向：${weather.windDirection ?? "取得待ち"}\n`;
+
+
+  text +=
+    `風速：${unit(weather.windSpeed, "m")}\n`;
+
+
+  text +=
+    `波高：${unit(weather.wave, "cm")}\n`;
+
+
+  text +=
+    "\n";
+
+
+  // =========================================================
+  // 選手
+  // =========================================================
+
+  samplePlayers.forEach(
+    p => {
+
+      text +=
+        `■${p.lane}号艇 ${p.name} ${p.grade}\n`;
+
+
+      text +=
+        `登録：${p.number}` +
+        ` / 支部：${p.branch}` +
+        ` / 出身：${p.hometown}` +
+        ` / ${p.age}歳` +
+        ` / ${p.weight}kg\n`;
+
+
+      text +=
+        `全国：勝率${p.nationalWin}` +
+        ` / 2連${pct(p.national2)}` +
+        ` / 3連${pct(p.national3)}\n`;
+
+
+      text +=
+        `当地：勝率${p.localWin}` +
+        ` / 2連${pct(p.local2)}` +
+        ` / 3連${pct(p.local3)}\n`;
+
+
+      text +=
+        `平均ST：${p.avgST}` +
+        ` / 今節平均ST：${p.seriesST}` +
+        ` / F${p.flying}` +
+        ` / L${p.late}\n`;
+
+
+      text +=
+        `モーター${p.motor}号：` +
+        `2連${pct(p.motor2)}` +
+        ` / 3連${pct(p.motor3)}\n`;
+
+
+      text +=
+        `ボート${p.boat}号：` +
+        `2連${pct(p.boat2)}` +
+        ` / 3連${pct(p.boat3)}\n`;
+
+
+      text +=
+        `得点率：${p.pointRate}` +
+        ` / 順位：${
+          p.pointRank !== "-"
+            ? `${p.pointRank}位`
+            : "-"
+        }\n`;
+
+
+      text +=
+        `直前：展示タイム ${displayWaiting(p.exhibitionTime)}` +
+        ` / 展示ST ${displayWaiting(p.startST)}` +
+        ` / 展示コース ${displayWaiting(p.startCourse)}` +
+        ` / チルト ${displayWaiting(p.tilt)}\n`;
+
+
+      text +=
+        `今節：${buildSeriesHistoryText(p)}\n`;
+
+
+      text +=
+        "\n";
+    }
+  );
+
+
+  text +=
+    "【評価用メモ】\n";
+
+
+  text +=
+    "平均STだけでなく今節ST・F持ち・モーター2連/3連・得点率順位・今節着順推移・直前展示を総合して評価すること。\n";
+
+
+  text +=
+    "展示情報が未公開の場合は、未取得値を推測せず基本情報と今節成績のみで暫定評価すること。";
+
+
+  return text;
+}
+
+
+// ============================================================
+// 今節履歴 TEXT
+// ============================================================
+
+function buildSeriesHistoryText(
+  p
+) {
+
+  if (
+    !p.seriesRaces.length
+  ) {
+
+    return "データなし";
+  }
+
+
+  return p.seriesRaces
+    .map(
+      r => {
+
+        let result =
+          r.result
+          ?? "-";
+
+
+        if (
+          typeof result === "number"
+        ) {
+
+          result =
+            `${result}着`;
+        }
+
+
+        return (
+          `${r.day}日目` +
+          `${r.raceNo}R` +
+          ` ${r.course ?? "-"}C` +
+          ` ST${r.st ?? "-"}` +
+          ` ${result}`
+        );
+      }
+    )
+    .join(" / ");
 }
 
 
@@ -885,14 +1821,25 @@ function buildAIText() {
 function renderAll() {
 
   renderPlayerCards();
+
   renderMotor();
+
   renderStart();
+
   renderLive();
 
-  document.getElementById(
-    "aiText"
-  ).value =
-    buildAIText();
+
+  const ai =
+    document.getElementById(
+      "aiText"
+    );
+
+
+  if (ai) {
+
+    ai.value =
+      buildAIText();
+  }
 }
 
 
@@ -902,19 +1849,19 @@ function renderAll() {
 
 document.getElementById(
   "backToVenues"
-).addEventListener(
+)?.addEventListener(
   "click",
   () => {
 
-    raceView.classList.add(
+    raceView?.classList.add(
       "hidden"
     );
 
-    detailView.classList.add(
+    detailView?.classList.add(
       "hidden"
     );
 
-    venueView.classList.remove(
+    venueView?.classList.remove(
       "hidden"
     );
   }
@@ -923,15 +1870,15 @@ document.getElementById(
 
 document.getElementById(
   "backToRaces"
-).addEventListener(
+)?.addEventListener(
   "click",
   () => {
 
-    detailView.classList.add(
+    detailView?.classList.add(
       "hidden"
     );
 
-    raceView.classList.remove(
+    raceView?.classList.remove(
       "hidden"
     );
   }
@@ -944,50 +1891,63 @@ document.getElementById(
 
 document.getElementById(
   "copyBtn"
-).addEventListener(
+)?.addEventListener(
   "click",
   async () => {
 
-    const text =
+    const textarea =
       document.getElementById(
         "aiText"
-      ).value;
+      );
+
+
+    if (!textarea) {
+      return;
+    }
+
+
+    const text =
+      textarea.value;
+
 
     try {
 
       await navigator.clipboard
-        .writeText(text);
+        .writeText(
+          text
+        );
 
     } catch {
 
-      const ta =
-        document.getElementById(
-          "aiText"
-        );
-
-      ta.select();
+      textarea.select();
 
       document.execCommand(
         "copy"
       );
     }
 
+
     const toast =
       document.getElementById(
         "toast"
       );
 
-    toast.classList.add(
-      "show"
-    );
 
-    setTimeout(
-      () =>
-        toast.classList.remove(
-          "show"
-        ),
-      1400
-    );
+    if (toast) {
+
+      toast.classList.add(
+        "show"
+      );
+
+
+      setTimeout(
+        () =>
+          toast.classList.remove(
+            "show"
+          ),
+        1400
+      );
+    }
   }
 );
 
@@ -998,79 +1958,331 @@ document.getElementById(
 
 document.querySelectorAll(
   ".tab"
-).forEach(btn => {
+)
+  .forEach(
+    btn => {
 
-  btn.addEventListener(
-    "click",
-    () => {
+      btn.addEventListener(
+        "click",
+        () => {
 
-      document.querySelectorAll(
-        ".tab"
-      ).forEach(
-        x => x.classList.remove("active")
-      );
+          document.querySelectorAll(
+            ".tab"
+          )
+            .forEach(
+              x =>
+                x.classList.remove(
+                  "active"
+                )
+            );
 
-      document.querySelectorAll(
-        ".tab-panel"
-      ).forEach(
-        x => x.classList.remove("active")
-      );
 
-      btn.classList.add(
-        "active"
-      );
+          document.querySelectorAll(
+            ".tab-panel"
+          )
+            .forEach(
+              x =>
+                x.classList.remove(
+                  "active"
+                )
+            );
 
-      document.getElementById(
-        btn.dataset.tab
-      ).classList.add(
-        "active"
+
+          btn.classList.add(
+            "active"
+          );
+
+
+          const target =
+            document.getElementById(
+              btn.dataset.tab
+            );
+
+
+          target?.classList.add(
+            "active"
+          );
+        }
       );
     }
   );
-});
 
 
 // ============================================================
 // UTIL
 // ============================================================
 
-function val(v) {
+function setText(
+  id,
+  text
+) {
+
+  const el =
+    document.getElementById(
+      id
+    );
+
+
+  if (el) {
+    el.textContent =
+      text;
+  }
+}
+
+
+function value(
+  v
+) {
 
   if (
-    v === null ||
-    v === undefined ||
+    v === null
+    ||
+    v === undefined
+    ||
     v === ""
   ) {
+
     return "-";
   }
+
 
   return v;
 }
 
 
-function pct(v) {
+function pct(
+  v
+) {
 
   if (
-    v === null ||
-    v === undefined ||
-    v === "" ||
+    v === null
+    ||
+    v === undefined
+    ||
+    v === ""
+    ||
     v === "-"
   ) {
+
     return "-";
   }
+
 
   return `${v}%`;
 }
 
 
-function escapeHtml(str) {
+function unit(
+  v,
+  suffix
+) {
 
-  return String(str)
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#039;");
+  if (
+    v === null
+    ||
+    v === undefined
+    ||
+    v === ""
+  ) {
+
+    return "取得待ち";
+  }
+
+
+  return `${v}${suffix}`;
+}
+
+
+function displayWaiting(
+  value
+) {
+
+  if (
+    value === null
+    ||
+    value === undefined
+    ||
+    value === ""
+    ||
+    value === "-"
+  ) {
+
+    return "取得待ち";
+  }
+
+
+  return value;
+}
+
+
+function numberOrNull(
+  value
+) {
+
+  if (
+    value === null
+    ||
+    value === undefined
+    ||
+    value === ""
+    ||
+    value === "-"
+  ) {
+
+    return null;
+  }
+
+
+  const n =
+    Number(
+      value
+    );
+
+
+  return Number.isNaN(n)
+    ? null
+    : n;
+}
+
+
+function stNumber(
+  value
+) {
+
+  if (
+    !value
+    ||
+    value === "-"
+  ) {
+
+    return null;
+  }
+
+
+  const text =
+    String(value)
+      .replace(
+        /[FL]/gi,
+        ""
+      );
+
+
+  const n =
+    Number(
+      text
+    );
+
+
+  return Number.isNaN(n)
+    ? null
+    : n;
+}
+
+
+function exhibitionSTNumber(
+  value
+) {
+
+  if (
+    !value
+    ||
+    value === "-"
+  ) {
+
+    return null;
+  }
+
+
+  const text =
+    String(value);
+
+
+  const n =
+    Number(
+      text.replace(
+        /[FL]/gi,
+        ""
+      )
+    );
+
+
+  if (
+    Number.isNaN(n)
+  ) {
+
+    return null;
+  }
+
+
+  /*
+   * F表示は負数扱い
+   */
+  if (
+    /^F/i.test(text)
+  ) {
+
+    return -n;
+  }
+
+
+  return n;
+}
+
+
+function formatApiDate(
+  date
+) {
+
+  if (
+    !date
+    ||
+    String(date).length !== 8
+  ) {
+
+    return date
+    || "-";
+  }
+
+
+  const s =
+    String(date);
+
+
+  return (
+    `${s.slice(0,4)}/` +
+    `${s.slice(4,6)}/` +
+    `${s.slice(6,8)}`
+  );
+}
+
+
+function escapeHtml(
+  str
+) {
+
+  return String(
+    str ?? ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
 }
 
 
