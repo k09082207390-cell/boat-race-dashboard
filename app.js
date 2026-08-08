@@ -146,10 +146,10 @@ async function openRace(r) {
       nat: p.national?.winRate ?? "-",
       local: p.local?.winRate ?? "-",
 
-      avgst: "-",
-      cst: "-",
-      season: "-",
-      est: "-",
+      avgst: p.start?.average ?? "-",
+cst: p.start?.courseAverage ?? "-",
+season: "-",
+est: "-",
 
       motor: String(p.motor?.number ?? "-"),
       m2: p.motor?.secondRate ?? "-",
