@@ -1,7 +1,7 @@
 // ============================================================
 // BOAT RACE DASHBOARD
 // BOAT RACE公式 × Cloudflare Worker
-// 統合表示 + イン信頼度版
+// 開催一覧 + 12R直接選択 + 6艇横並び
 // ============================================================
 
 const API_BASE =
@@ -9,68 +9,268 @@ const API_BASE =
 
 
 // ============================================================
-// 24場
+// 本日の開催表示
+//
+// 現在はトップ表示用データ。
+// レース本体はBOAT RACE公式からWorker経由で取得。
 // ============================================================
 
 const venues = [
-  ["桐生", "night"],
-  ["戸田", ""],
-  ["江戸川", ""],
-  ["平和島", ""],
 
-  ["多摩川", ""],
-  ["浜名湖", ""],
-  ["蒲郡", "night"],
-  ["常滑", ""],
+  {
+    name: "桐生",
+    placeNo: 1,
+    day: "5日目",
+    time: "10:47",
+    type: "night",
+    rank: "一般",
+    title: "開催中"
+  },
 
-  ["津", ""],
-  ["三国", ""],
-  ["びわこ", ""],
-  ["住之江", "night"],
+  {
+    name: "戸田",
+    placeNo: 2,
+    day: "最終日",
+    time: "10:47",
+    type: "",
+    rank: "一般",
+    title: "開催中"
+  },
 
-  ["尼崎", ""],
-  ["鳴門", ""],
-  ["丸亀", "night"],
-  ["児島", ""],
+  {
+    name: "江戸川",
+    placeNo: 3,
+    day: "初日",
+    time: "11:14",
+    type: "",
+    rank: "一般",
+    title: "開催中"
+  },
 
-  ["宮島", ""],
-  ["徳山", "g1"],
-  ["下関", "night"],
-  ["若松", "night"],
+  {
+    name: "平和島",
+    placeNo: 4,
+    day: "次開催",
+    time: "08/11",
+    type: "",
+    rank: "一般",
+    title: "次開催"
+  },
 
-  ["芦屋", ""],
-  ["福岡", ""],
-  ["唐津", ""],
-  ["大村", "night"]
+  {
+    name: "多摩川",
+    placeNo: 5,
+    day: "2日目",
+    time: "11:33",
+    type: "",
+    rank: "一般",
+    title: "開催中"
+  },
+
+  {
+    name: "浜名湖",
+    placeNo: 6,
+    day: "次開催",
+    time: "08/11",
+    type: "",
+    rank: "一般",
+    title: "次開催"
+  },
+
+  {
+    name: "蒲郡",
+    placeNo: 7,
+    day: "次開催",
+    time: "08/10",
+    type: "night",
+    rank: "一般",
+    title: "次開催"
+  },
+
+  {
+    name: "常滑",
+    placeNo: 8,
+    day: "次開催",
+    time: "08/10",
+    type: "",
+    rank: "一般",
+    title: "次開催"
+  },
+
+  {
+    name: "津",
+    placeNo: 9,
+    day: "5日目",
+    time: "10:28",
+    type: "",
+    rank: "一般",
+    title: "開催中"
+  },
+
+  {
+    name: "三国",
+    placeNo: 10,
+    day: "最終日",
+    time: "08:32",
+    type: "",
+    rank: "一般",
+    title: "開催中"
+  },
+
+  {
+    name: "びわこ",
+    placeNo: 11,
+    day: "次開催",
+    time: "08/15",
+    type: "",
+    rank: "一般",
+    title: "次開催"
+  },
+
+  {
+    name: "住之江",
+    placeNo: 12,
+    day: "最終日",
+    time: "15:17",
+    type: "night",
+    rank: "一般",
+    title: "開催中"
+  },
+
+  {
+    name: "尼崎",
+    placeNo: 13,
+    day: "初日",
+    time: "10:33",
+    type: "",
+    rank: "一般",
+    title: "開催中"
+  },
+
+  {
+    name: "鳴門",
+    placeNo: 14,
+    day: "5日目",
+    time: "08:40",
+    type: "",
+    rank: "一般",
+    title: "開催中"
+  },
+
+  {
+    name: "丸亀",
+    placeNo: 15,
+    day: "3日目",
+    time: "15:25",
+    type: "night",
+    rank: "一般",
+    title: "開催中"
+  },
+
+  {
+    name: "児島",
+    placeNo: 16,
+    day: "2日目",
+    time: "10:46",
+    type: "",
+    rank: "一般",
+    title: "開催中"
+  },
+
+  {
+    name: "宮島",
+    placeNo: 17,
+    day: "次開催",
+    time: "08/14",
+    type: "",
+    rank: "一般",
+    title: "次開催"
+  },
+
+  {
+    name: "徳山",
+    placeNo: 18,
+    day: "4日目",
+    time: "10:38",
+    type: "g1",
+    rank: "PG1",
+    title: "第40回 レディースチャンピオン"
+  },
+
+  {
+    name: "下関",
+    placeNo: 19,
+    day: "次開催",
+    time: "08/11",
+    type: "night",
+    rank: "一般",
+    title: "次開催"
+  },
+
+  {
+    name: "若松",
+    placeNo: 20,
+    day: "3日目",
+    time: "15:29",
+    type: "night",
+    rank: "一般",
+    title: "開催中"
+  },
+
+  {
+    name: "芦屋",
+    placeNo: 21,
+    day: "次開催",
+    time: "08/10",
+    type: "",
+    rank: "一般",
+    title: "次開催"
+  },
+
+  {
+    name: "福岡",
+    placeNo: 22,
+    day: "次開催",
+    time: "08/12",
+    type: "",
+    rank: "一般",
+    title: "次開催"
+  },
+
+  {
+    name: "唐津",
+    placeNo: 23,
+    day: "初日",
+    time: "08:48",
+    type: "",
+    rank: "一般",
+    title: "開催中"
+  },
+
+  {
+    name: "大村",
+    placeNo: 24,
+    day: "4日目",
+    time: "15:20",
+    type: "night",
+    rank: "一般",
+    title: "開催中"
+  }
+
 ];
 
 
-const PLACE_NUMBERS = {
-  "桐生": 1,
-  "戸田": 2,
-  "江戸川": 3,
-  "平和島": 4,
-  "多摩川": 5,
-  "浜名湖": 6,
-  "蒲郡": 7,
-  "常滑": 8,
-  "津": 9,
-  "三国": 10,
-  "びわこ": 11,
-  "住之江": 12,
-  "尼崎": 13,
-  "鳴門": 14,
-  "丸亀": 15,
-  "児島": 16,
-  "宮島": 17,
-  "徳山": 18,
-  "下関": 19,
-  "若松": 20,
-  "芦屋": 21,
-  "福岡": 22,
-  "唐津": 23,
-  "大村": 24
-};
+// ============================================================
+// PLACE NUMBER
+// ============================================================
+
+const PLACE_NUMBERS =
+  Object.fromEntries(
+    venues.map(v => [
+      v.name,
+      v.placeNo
+    ])
+  );
 
 
 // ============================================================
@@ -140,18 +340,37 @@ function todayApiString() {
 }
 
 
-const todayLabel =
-  document.getElementById("todayLabel");
+function setDates() {
 
-if (todayLabel) {
-
-  todayLabel.textContent =
+  const date =
     todayString();
+
+  const todayLabel =
+    document.getElementById(
+      "todayLabel"
+    );
+
+  const homeDateLabel =
+    document.getElementById(
+      "homeDateLabel"
+    );
+
+
+  if (todayLabel) {
+    todayLabel.textContent =
+      date;
+  }
+
+
+  if (homeDateLabel) {
+    homeDateLabel.textContent =
+      date;
+  }
 }
 
 
 // ============================================================
-// VENUES
+// ★ 本日の開催
 // ============================================================
 
 function renderVenues() {
@@ -165,73 +384,232 @@ function renderVenues() {
     "";
 
 
-  venues.forEach(v => {
+  venues.forEach(
+    meeting => {
 
-    const [
-      name,
-      type
-    ] = v;
+      const isNext =
+        meeting.day === "次開催";
 
 
-    const btn =
-      document.createElement(
-        "button"
+      const nightBadge =
+        meeting.type === "night"
+          ? `
+            <span class="meeting-badge night">
+              ナイター
+            </span>
+          `
+          : "";
+
+
+      const gradeBadge =
+        meeting.type === "g1"
+          ? `
+            <span class="meeting-badge g1">
+              ${meeting.rank}
+            </span>
+          `
+          : `
+            <span class="meeting-badge">
+              ${meeting.rank}
+            </span>
+          `;
+
+
+      const races =
+        isNext
+          ? buildNextMeetingNotice(
+              meeting
+            )
+          : buildMeetingRaceButtons(
+              meeting
+            );
+
+
+      venueGrid.insertAdjacentHTML(
+        "beforeend",
+        `
+        <article class="meeting-card">
+
+          <div class="meeting-head">
+
+            <div class="meeting-main">
+
+              <div class="meeting-place">
+                ${escapeHtml(meeting.name)}
+              </div>
+
+              <div class="meeting-info">
+
+                <div class="meeting-title">
+                  ${escapeHtml(meeting.title)}
+                </div>
+
+                <div class="meeting-sub">
+                  ${escapeHtml(meeting.day)}
+                  ・
+                  1R ${escapeHtml(meeting.time)}
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="meeting-badges">
+
+              ${gradeBadge}
+
+              ${nightBadge}
+
+            </div>
+
+          </div>
+
+
+          ${races}
+
+        </article>
+        `
       );
 
-
-    btn.className =
-      "venue-card";
-
-
-    btn.innerHTML = `
-      <span class="venue-name">
-        ${name}
-      </span>
-
-      <span class="venue-body">
-
-        <strong>
-          レース選択
-        </strong>
-
-        ${
-          type
-            ? `
-              <span class="badge ${type}">
-                ${
-                  type === "night"
-                    ? "ナイター"
-                    : "G1"
-                }
-              </span>
-            `
-            : `
-              <span class="badge">
-                一般
-              </span>
-            `
-        }
-
-      </span>
-    `;
+    }
+  );
 
 
-    btn.addEventListener(
-      "click",
-      () =>
-        openVenue(name)
-    );
-
-
-    venueGrid.appendChild(
-      btn
-    );
-  });
+  bindMeetingButtons();
 }
 
 
 // ============================================================
-// VENUE
+// 1R〜12R
+// ============================================================
+
+function buildMeetingRaceButtons(
+  meeting
+) {
+
+  let html =
+    `<div class="meeting-races">`;
+
+
+  for (
+    let race = 1;
+    race <= 12;
+    race++
+  ) {
+
+    html += `
+      <button
+        class="meeting-race-btn"
+        type="button"
+        data-place="${escapeHtml(meeting.name)}"
+        data-race="${race}"
+      >
+
+        <strong>
+          ${race}R
+        </strong>
+
+        <span>
+          選択
+        </span>
+
+      </button>
+    `;
+  }
+
+
+  html +=
+    `</div>`;
+
+
+  return html;
+}
+
+
+// ============================================================
+// 次開催
+// ============================================================
+
+function buildNextMeetingNotice(
+  meeting
+) {
+
+  return `
+    <div
+      style="
+        padding:11px 13px;
+        color:#708793;
+        font-size:11px;
+        background:#f9fcfd;
+      "
+    >
+      次開催：
+      ${escapeHtml(meeting.time)}
+    </div>
+  `;
+}
+
+
+// ============================================================
+// 開催一覧のRボタン
+// ============================================================
+
+function bindMeetingButtons() {
+
+  document.querySelectorAll(
+    ".meeting-race-btn"
+  )
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const place =
+              button.dataset.place;
+
+            const race =
+              Number(
+                button.dataset.race
+              );
+
+
+            document
+              .querySelectorAll(
+                ".meeting-race-btn"
+              )
+              .forEach(
+                x =>
+                  x.classList.remove(
+                    "selected"
+                  )
+              );
+
+
+            button.classList.add(
+              "selected"
+            );
+
+
+            selectedVenue =
+              place;
+
+            openRace(
+              race
+            );
+
+          }
+        );
+
+      }
+    );
+}
+
+
+// ============================================================
+// 旧UI互換
 // ============================================================
 
 function openVenue(
@@ -258,11 +636,9 @@ function openVenue(
     "hidden"
   );
 
-
   detailView?.classList.add(
     "hidden"
   );
-
 
   raceView?.classList.remove(
     "hidden"
@@ -272,10 +648,6 @@ function openVenue(
   renderRaces();
 }
 
-
-// ============================================================
-// RACES
-// ============================================================
 
 function renderRaces() {
 
@@ -332,6 +704,11 @@ async function openRace(
 
   selectedRace =
     raceNo;
+
+
+  venueView?.classList.add(
+    "hidden"
+  );
 
 
   raceView?.classList.add(
@@ -468,6 +845,8 @@ async function openRace(
       `取得成功：${samplePlayers.length}艇${beforeText}`
     );
 
+
+    activateSummaryTab();
 
     renderAll();
 
@@ -710,6 +1089,7 @@ function normalizePlayer(
       value(
         p.before?.startOrder
       )
+
   };
 }
 
@@ -734,11 +1114,13 @@ function clearDetail() {
             id
           );
 
+
         if (el) {
 
           el.innerHTML =
             "";
         }
+
       }
     );
 
@@ -844,9 +1226,7 @@ function renderPlayerCards() {
               <div class="metric">
                 F/L
                 <b>
-                  F${p.flying}
-                  /
-                  L${p.late}
+                  F${p.flying}/L${p.late}
                 </b>
               </div>
 
@@ -862,17 +1242,18 @@ function renderPlayerCards() {
               </div>
 
               <div class="metric">
-                モーター2連
+                2連率
                 <b>${pct(p.motor2)}</b>
               </div>
 
+
               <div class="metric">
-                モーター3連
+                3連率
                 <b>${pct(p.motor3)}</b>
               </div>
 
               <div class="metric">
-                モーター評価
+                機力
                 <b>${motorEvaluation(p)}</b>
               </div>
 
@@ -883,7 +1264,7 @@ function renderPlayerCards() {
               </div>
 
               <div class="metric">
-                得点順位
+                順位
                 <b>
                   ${
                     p.pointRank !== "-"
@@ -908,22 +1289,22 @@ function renderPlayerCards() {
 
 
             <div style="
-              margin-top:12px;
-              padding-top:10px;
+              margin-top:8px;
+              padding-top:7px;
               border-top:1px solid rgba(0,0,0,.08);
             ">
 
               <div style="
-                font-size:12px;
+                font-size:9px;
                 opacity:.65;
-                margin-bottom:6px;
+                margin-bottom:3px;
               ">
                 今節成績
               </div>
 
               <div style="
-                font-size:12px;
-                line-height:1.8;
+                font-size:9px;
+                line-height:1.55;
               ">
                 ${buildSeriesHistoryHtml(p)}
               </div>
@@ -935,13 +1316,14 @@ function renderPlayerCards() {
         </article>
         `
       );
+
     }
   );
 }
 
 
 // ============================================================
-// 今節履歴 HTML
+// SERIES HTML
 // ============================================================
 
 function buildSeriesHistoryHtml(
@@ -975,12 +1357,12 @@ function buildSeriesHistoryHtml(
 
 
         return (
-          `${r.day}日目 ` +
-          `${r.raceNo}R / ` +
-          `${r.course ?? "-"}C / ` +
-          `ST ${r.st ?? "-"} / ` +
+          `${r.day}日 ${r.raceNo}R ` +
+          `${r.course ?? "-"}C ` +
+          `ST${r.st ?? "-"} ` +
           `${result}`
         );
+
       }
     )
     .join("<br>");
@@ -1022,37 +1404,24 @@ function renderMotor() {
             </span>
           </td>
 
-          <td>
-            ${p.motor}号
-          </td>
+          <td>${p.motor}号</td>
 
-          <td>
-            ${pct(p.motor2)}
-          </td>
+          <td>${pct(p.motor2)}</td>
 
-          <td>
-            ${pct(p.motor3)}
-          </td>
+          <td>${pct(p.motor3)}</td>
 
-          <td>
-            ${p.boat}号
-          </td>
+          <td>${p.boat}号</td>
 
-          <td>
-            ${pct(p.boat2)}
-          </td>
+          <td>${pct(p.boat2)}</td>
 
-          <td>
-            ${pct(p.boat3)}
-          </td>
+          <td>${pct(p.boat3)}</td>
 
-          <td>
-            ${motorEvaluation(p)}
-          </td>
+          <td>${motorEvaluation(p)}</td>
 
         </tr>
         `
       );
+
     }
   );
 }
@@ -1107,9 +1476,7 @@ function renderStart() {
             }
           </td>
 
-          <td>
-            F${p.flying}
-          </td>
+          <td>F${p.flying}</td>
 
           <td>
             ${displayWaiting(p.startST)}
@@ -1122,6 +1489,7 @@ function renderStart() {
         </tr>
         `
       );
+
     }
   );
 }
@@ -1197,6 +1565,7 @@ function renderLive() {
         </tr>
         `
       );
+
     }
   );
 }
@@ -1220,54 +1589,56 @@ function renderWeather() {
 
 
   if (
-    items.length >= 5
+    items.length < 5
   ) {
-
-    items[0].textContent =
-      weather.windDirection
-      ??
-      "取得待ち";
-
-
-    items[1].textContent =
-      weather.windSpeed !== null
-      &&
-      weather.windSpeed !== undefined
-
-        ? `${weather.windSpeed}m`
-
-        : "取得待ち";
-
-
-    items[2].textContent =
-      weather.wave !== null
-      &&
-      weather.wave !== undefined
-
-        ? `${weather.wave}cm`
-
-        : "取得待ち";
-
-
-    items[3].textContent =
-      weather.airTemperature !== null
-      &&
-      weather.airTemperature !== undefined
-
-        ? `${weather.airTemperature}℃`
-
-        : "取得待ち";
-
-
-    items[4].textContent =
-      weather.waterTemperature !== null
-      &&
-      weather.waterTemperature !== undefined
-
-        ? `${weather.waterTemperature}℃`
-
-        : "取得待ち";
+    return;
   }
+
+
+  items[0].textContent =
+    weather.windDirection
+    ??
+    "取得待ち";
+
+
+  items[1].textContent =
+    weather.windSpeed !== null
+    &&
+    weather.windSpeed !== undefined
+
+      ? `${weather.windSpeed}m`
+
+      : "取得待ち";
+
+
+  items[2].textContent =
+    weather.wave !== null
+    &&
+    weather.wave !== undefined
+
+      ? `${weather.wave}cm`
+
+      : "取得待ち";
+
+
+  items[3].textContent =
+    weather.airTemperature !== null
+    &&
+    weather.airTemperature !== undefined
+
+      ? `${weather.airTemperature}℃`
+
+      : "取得待ち";
+
+
+  items[4].textContent =
+    weather.waterTemperature !== null
+    &&
+    weather.waterTemperature !== undefined
+
+      ? `${weather.waterTemperature}℃`
+
+      : "取得待ち";
 }
 
 
@@ -1336,7 +1707,7 @@ function motorEvaluation(
 
 
 // ============================================================
-// ST EVALUATION
+// START EVALUATION
 // ============================================================
 
 function startEvaluation(
@@ -1369,7 +1740,7 @@ function startEvaluation(
     series <= 0.10
   ) {
 
-    return "🔥 今節踏めてる";
+    return "🔥 踏めてる";
   }
 
 
@@ -1379,7 +1750,7 @@ function startEvaluation(
     series <= 0.13
   ) {
 
-    return "◎ 今節ST良";
+    return "◎ 今節良";
   }
 
 
@@ -1389,7 +1760,7 @@ function startEvaluation(
     normal <= 0.13
   ) {
 
-    return "◎ ST速い";
+    return "◎ ST速";
   }
 
 
@@ -1399,7 +1770,7 @@ function startEvaluation(
     normal >= 0.19
   ) {
 
-    return "△ ST遅め";
+    return "△ 遅め";
   }
 
 
@@ -1445,7 +1816,7 @@ function liveEvaluation(
     st <= 0.05
   ) {
 
-    return "🔥 踏み込み";
+    return "🔥";
   }
 
 
@@ -1481,41 +1852,10 @@ function updateConfidence() {
     );
 
 
-  let noteEl =
+  const noteEl =
     document.querySelector(
       ".confidence-note"
     );
-
-
-  /*
-   * classが無い旧HTMLでも動かす
-   */
-  if (!noteEl) {
-
-    const panel =
-      scoreEl?.closest(
-        ".panel"
-      );
-
-
-    if (panel) {
-
-      const p =
-        panel.querySelector("p");
-
-
-      if (p) {
-
-        p.classList.add(
-          "confidence-note"
-        );
-
-
-        noteEl =
-          p;
-      }
-    }
-  }
 
 
   const one =
@@ -1547,9 +1887,7 @@ function updateConfidence() {
     [];
 
 
-  // ----------------------------------------------------------
   // 平均ST
-  // ----------------------------------------------------------
 
   const avgST =
     stNumber(
@@ -1590,9 +1928,7 @@ function updateConfidence() {
   }
 
 
-  // ----------------------------------------------------------
   // 今節ST
-  // ----------------------------------------------------------
 
   const seriesST =
     stNumber(
@@ -1637,9 +1973,7 @@ function updateConfidence() {
   }
 
 
-  // ----------------------------------------------------------
   // F
-  // ----------------------------------------------------------
 
   if (
     one.flying > 0
@@ -1653,9 +1987,7 @@ function updateConfidence() {
   }
 
 
-  // ----------------------------------------------------------
-  // モーター
-  // ----------------------------------------------------------
+  // Motor
 
   const motor2 =
     numberOrNull(
@@ -1712,9 +2044,7 @@ function updateConfidence() {
   }
 
 
-  // ----------------------------------------------------------
-  // 得点率
-  // ----------------------------------------------------------
+  // Point
 
   const pointRate =
     numberOrNull(
@@ -1755,9 +2085,7 @@ function updateConfidence() {
   }
 
 
-  // ----------------------------------------------------------
-  // 2〜4号艇の攻撃力
-  // ----------------------------------------------------------
+  // 2〜4攻撃力
 
   const attackers =
     samplePlayers.filter(
@@ -1839,13 +2167,12 @@ function updateConfidence() {
 
         score -= 4;
       }
+
     }
   );
 
 
-  // ----------------------------------------------------------
-  // 直前展示
-  // ----------------------------------------------------------
+  // 直前ST
 
   if (
     one.beforeAvailable
@@ -1885,10 +2212,6 @@ function updateConfidence() {
   }
 
 
-  // ----------------------------------------------------------
-  // 0〜100
-  // ----------------------------------------------------------
-
   score =
     Math.max(
       0,
@@ -1899,26 +2222,21 @@ function updateConfidence() {
     );
 
 
-  if (
-    scoreEl
-  ) {
+  if (scoreEl) {
 
     scoreEl.textContent =
       `${score}%`;
   }
 
 
-  if (
-    barEl
-  ) {
+  if (barEl) {
 
     barEl.style.width =
       `${score}%`;
   }
 
 
-  let label =
-    "";
+  let label;
 
 
   if (
@@ -1963,9 +2281,7 @@ function updateConfidence() {
   }
 
 
-  if (
-    noteEl
-  ) {
+  if (noteEl) {
 
     noteEl.textContent =
       `${label}｜${
@@ -1980,7 +2296,7 @@ function updateConfidence() {
 
 
 // ============================================================
-// AI COPY
+// AI TEXT
 // ============================================================
 
 function buildAIText() {
@@ -2044,18 +2360,14 @@ function buildAIText() {
   text +=
     `風向：${weather.windDirection ?? "取得待ち"}\n`;
 
-
   text +=
     `風速：${unit(weather.windSpeed, "m")}\n`;
-
 
   text +=
     `波高：${unit(weather.wave, "cm")}\n`;
 
-
   text +=
     `気温：${unit(weather.airTemperature, "℃")}\n`;
-
 
   text +=
     `水温：${unit(weather.waterTemperature, "℃")}\n\n`;
@@ -2115,8 +2427,7 @@ function buildAIText() {
 
 
       text +=
-        `展示：` +
-        `進入${displayWaiting(p.startCourse)}` +
+        `展示：進入${displayWaiting(p.startCourse)}` +
         ` / ST${displayWaiting(p.startST)}` +
         ` / タイム${displayWaiting(p.exhibitionTime)}` +
         ` / チルト${displayWaiting(p.tilt)}\n`;
@@ -2124,6 +2435,7 @@ function buildAIText() {
 
       text +=
         `今節：${buildSeriesHistoryText(p)}\n\n`;
+
     }
   );
 
@@ -2133,7 +2445,7 @@ function buildAIText() {
 
 
 // ============================================================
-// 今節 TEXT
+// SERIES TEXT
 // ============================================================
 
 function buildSeriesHistoryText(
@@ -2172,6 +2484,7 @@ function buildSeriesHistoryText(
           `ST${r.st ?? "-"} ` +
           `${result}`
         );
+
       }
     )
     .join(" / ");
@@ -2212,27 +2525,79 @@ function renderAll() {
 
 
 // ============================================================
+// TAB RESET
+// ============================================================
+
+function activateSummaryTab() {
+
+  document.querySelectorAll(
+    ".tab"
+  )
+    .forEach(
+      x =>
+        x.classList.remove(
+          "active"
+        )
+    );
+
+
+  document.querySelectorAll(
+    ".tab-panel"
+  )
+    .forEach(
+      x =>
+        x.classList.remove(
+          "active"
+        )
+    );
+
+
+  document.querySelector(
+    '.tab[data-tab="summary"]'
+  )?.classList.add(
+    "active"
+  );
+
+
+  document.getElementById(
+    "summary"
+  )?.classList.add(
+    "active"
+  );
+}
+
+
+// ============================================================
 // BACK
 // ============================================================
+
+function showHome() {
+
+  detailView?.classList.add(
+    "hidden"
+  );
+
+  raceView?.classList.add(
+    "hidden"
+  );
+
+  venueView?.classList.remove(
+    "hidden"
+  );
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
 
 document.getElementById(
   "backToVenues"
 )?.addEventListener(
   "click",
-  () => {
-
-    raceView?.classList.add(
-      "hidden"
-    );
-
-    detailView?.classList.add(
-      "hidden"
-    );
-
-    venueView?.classList.remove(
-      "hidden"
-    );
-  }
+  showHome
 );
 
 
@@ -2240,16 +2605,7 @@ document.getElementById(
   "backToRaces"
 )?.addEventListener(
   "click",
-  () => {
-
-    detailView?.classList.add(
-      "hidden"
-    );
-
-    raceView?.classList.remove(
-      "hidden"
-    );
-  }
+  showHome
 );
 
 
@@ -2362,8 +2718,10 @@ document.querySelectorAll(
           )?.classList.add(
             "active"
           );
+
         }
       );
+
     }
   );
 
@@ -2641,5 +2999,7 @@ function escapeHtml(
 // ============================================================
 // START
 // ============================================================
+
+setDates();
 
 renderVenues();
