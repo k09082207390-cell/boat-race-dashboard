@@ -1,153 +1,583 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Boat Race Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>BOAT RACE DASHBOARD</title>
+
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+
+  <!-- ===================================================== -->
+  <!-- HEADER -->
+  <!-- ===================================================== -->
+
   <header class="site-header">
-    <div>
-      <h1>BOAT RACE DASHBOARD</h1>
-      <p>予想用データを、必要なものだけ。</p>
+
+    <div class="site-header-inner">
+
+      <div>
+        <h1>
+          BOAT RACE DASHBOARD
+        </h1>
+
+        <p>
+          予想用データを、必要なものだけ。
+        </p>
+      </div>
+
+
+      <div
+        id="todayLabel"
+        class="today-label"
+      >
+        ----/--/--
+      </div>
+
     </div>
-    <div class="date-box" id="todayLabel"></div>
+
   </header>
 
-  <main class="container">
-    <section id="venueView">
-      <div class="section-title-row">
+
+  <!-- ===================================================== -->
+  <!-- MAIN -->
+  <!-- ===================================================== -->
+
+  <main class="app-shell">
+
+
+    <!-- =================================================== -->
+    <!-- VENUE VIEW -->
+    <!-- =================================================== -->
+
+    <section
+      id="venueView"
+      class="view"
+    >
+
+      <div class="section-head">
+
         <div>
-          <h2>開催場を選択</h2>
-          <p class="muted">場を押すと1R〜12Rを表示します。</p>
+
+          <h2>
+            レース場を選択
+          </h2>
+
+          <p>
+            24場から選択
+          </p>
+
         </div>
+
       </div>
-      <div id="venueGrid" class="venue-grid"></div>
+
+
+      <div
+        id="venueGrid"
+        class="venue-grid"
+      >
+      </div>
+
     </section>
 
-    <section id="raceView" class="hidden">
-      <div class="toolbar">
-        <button class="ghost-btn" id="backToVenues">← 開催場一覧</button>
-        <div>
-          <h2 id="selectedVenueTitle">徳山</h2>
-          <p class="muted" id="selectedVenueMeta">4日目</p>
-        </div>
+
+
+    <!-- =================================================== -->
+    <!-- RACE VIEW -->
+    <!-- =================================================== -->
+
+    <section
+      id="raceView"
+      class="view hidden"
+    >
+
+      <div class="top-nav">
+
+        <button
+          id="backToVenues"
+          class="back-btn"
+          type="button"
+        >
+          ← 場一覧
+        </button>
+
       </div>
 
-      <div class="race-grid" id="raceGrid"></div>
+
+      <div class="section-head">
+
+        <div>
+
+          <h2
+            id="selectedVenueTitle"
+          >
+            徳山
+          </h2>
+
+          <p
+            id="selectedVenueMeta"
+          >
+            レースを選択
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="raceGrid"
+        class="race-grid"
+      >
+      </div>
+
     </section>
 
-    <section id="detailView" class="hidden">
-      <div class="toolbar">
-        <button class="ghost-btn" id="backToRaces">← レース一覧</button>
-        <div>
-          <h2 id="raceTitle">徳山 10R</h2>
-          <p class="muted" id="raceMeta">締切 15:20</p>
-        </div>
+
+
+    <!-- =================================================== -->
+    <!-- DETAIL VIEW -->
+    <!-- =================================================== -->
+
+    <section
+      id="detailView"
+      class="view hidden"
+    >
+
+
+      <!-- ----------------------------------------------- -->
+      <!-- TOP -->
+      <!-- ----------------------------------------------- -->
+
+      <div class="top-nav">
+
+        <button
+          id="backToRaces"
+          class="back-btn"
+          type="button"
+        >
+          ← レース一覧
+        </button>
+
       </div>
 
-      <div class="status-panel">
-        <div>
-          <span class="status-dot waiting"></span>
-          <strong>データ取得：</strong>
-          <span id="fetchStatus">未接続（デモ表示）</span>
-        </div>
-        <button class="primary-btn" id="copyBtn">AI用データをコピー</button>
+
+      <div class="race-heading">
+
+        <h2
+          id="raceTitle"
+        >
+          徳山 1R
+        </h2>
+
+        <p
+          id="raceMeta"
+        >
+          BOAT RACE公式・実データ
+        </p>
+
       </div>
+
+
+      <!-- ----------------------------------------------- -->
+      <!-- STATUS -->
+      <!-- ----------------------------------------------- -->
+
+      <div class="status-bar">
+
+        <div
+          id="fetchStatus"
+          class="fetch-status"
+        >
+          データ取得待ち
+        </div>
+
+
+        <button
+          id="copyBtn"
+          class="copy-btn"
+          type="button"
+        >
+          AI用データをコピー
+        </button>
+
+      </div>
+
+
+      <!-- ----------------------------------------------- -->
+      <!-- TABS -->
+      <!-- ----------------------------------------------- -->
 
       <div class="tabs">
-        <button class="tab active" data-tab="summary">まとめ</button>
-        <button class="tab" data-tab="motor">モーター</button>
-        <button class="tab" data-tab="start">ST</button>
-        <button class="tab" data-tab="live">直前</button>
+
+        <button
+          class="tab active"
+          data-tab="summary"
+          type="button"
+        >
+          まとめ
+        </button>
+
+        <button
+          class="tab"
+          data-tab="motor"
+          type="button"
+        >
+          モーター
+        </button>
+
+        <button
+          class="tab"
+          data-tab="start"
+          type="button"
+        >
+          ST
+        </button>
+
+        <button
+          class="tab"
+          data-tab="live"
+          type="button"
+        >
+          直前
+        </button>
+
       </div>
 
-      <div id="summary" class="tab-panel active">
-        <div class="cards six" id="playerCards"></div>
 
-        <div class="two-col">
-          <article class="panel">
-            <h3>イン信頼度</h3>
-            <div class="confidence-wrap">
-              <div class="confidence-score">72%</div>
-              <div class="confidence-bar"><span style="width:72%"></span></div>
-            </div>
-            <p class="muted">1号艇のコース別成績・ST・相手の攻撃力をまとめて見る想定。</p>
-          </article>
+      <!-- ================================================= -->
+      <!-- SUMMARY -->
+      <!-- ================================================= -->
 
-          <article class="panel">
-            <h3>気象・水面</h3>
-            <dl class="kv">
-              <div><dt>風向</dt><dd>向かい風</dd></div>
-              <div><dt>風速</dt><dd>4m</dd></div>
-              <div><dt>波高</dt><dd>4cm</dd></div>
-              <div><dt>気温</dt><dd>31℃</dd></div>
-              <div><dt>水温</dt><dd>28℃</dd></div>
-            </dl>
-          </article>
+      <section
+        id="summary"
+        class="tab-panel active"
+      >
+
+        <!-- PLAYER CARDS -->
+
+        <div
+          id="playerCards"
+          class="player-grid"
+        >
         </div>
 
-        <article class="panel">
-          <h3>AI貼り付け用プレビュー</h3>
-          <textarea id="aiText" readonly></textarea>
-        </article>
-      </div>
 
-      <div id="motor" class="tab-panel">
-        <article class="panel">
-          <h3>モーター比較</h3>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>艇</th><th>モーター</th><th>通算2連</th><th>通算3連</th>
-                  <th>直近1か月2連</th><th>直近1か月3連</th><th>前検</th><th>評価</th>
-                </tr>
-              </thead>
-              <tbody id="motorTable"></tbody>
-            </table>
-          </div>
-        </article>
-      </div>
+        <!-- LOWER GRID -->
 
-      <div id="start" class="tab-panel">
-        <article class="panel">
-          <h3>スタート比較</h3>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>艇</th><th>平均ST</th><th>コース別ST</th><th>今節ST</th>
-                  <th>展示ST</th><th>ST順位</th><th>F</th><th>判定</th>
-                </tr>
-              </thead>
-              <tbody id="startTable"></tbody>
-            </table>
-          </div>
-        </article>
-      </div>
+        <div class="summary-grid">
 
-      <div id="live" class="tab-panel">
-        <article class="panel">
-          <h3>直前情報</h3>
+
+          <!-- --------------------------------------------- -->
+          <!-- CONFIDENCE -->
+          <!-- --------------------------------------------- -->
+
+          <section class="panel confidence-panel">
+
+            <h3>
+              イン信頼度
+            </h3>
+
+
+            <div class="confidence-row">
+
+              <div
+                class="confidence-score"
+              >
+                —
+              </div>
+
+
+              <div
+                class="confidence-bar"
+              >
+                <span></span>
+              </div>
+
+            </div>
+
+
+            <p
+              class="confidence-note"
+            >
+              1号艇のST・今節成績・機力・相手の攻撃力から判定。
+            </p>
+
+          </section>
+
+
+
+          <!-- --------------------------------------------- -->
+          <!-- WEATHER -->
+          <!-- --------------------------------------------- -->
+
+          <section class="panel">
+
+            <h3>
+              気象・水面
+            </h3>
+
+
+            <dl class="kv">
+
+              <div>
+                <dt>
+                  風向
+                </dt>
+
+                <dd>
+                  取得待ち
+                </dd>
+              </div>
+
+
+              <div>
+                <dt>
+                  風速
+                </dt>
+
+                <dd>
+                  取得待ち
+                </dd>
+              </div>
+
+
+              <div>
+                <dt>
+                  波高
+                </dt>
+
+                <dd>
+                  取得待ち
+                </dd>
+              </div>
+
+
+              <div>
+                <dt>
+                  気温
+                </dt>
+
+                <dd>
+                  取得待ち
+                </dd>
+              </div>
+
+
+              <div>
+                <dt>
+                  水温
+                </dt>
+
+                <dd>
+                  取得待ち
+                </dd>
+              </div>
+
+            </dl>
+
+          </section>
+
+        </div>
+
+
+        <!-- AI PREVIEW -->
+
+        <section class="panel ai-panel">
+
+          <h3>
+            AI貼り付け用プレビュー
+          </h3>
+
+          <textarea
+            id="aiText"
+            readonly
+          ></textarea>
+
+        </section>
+
+      </section>
+
+
+
+      <!-- ================================================= -->
+      <!-- MOTOR -->
+      <!-- ================================================= -->
+
+      <section
+        id="motor"
+        class="tab-panel"
+      >
+
+        <section class="panel">
+
+          <h3>
+            モーター・ボート
+          </h3>
+
+
           <div class="table-wrap">
+
             <table>
+
               <thead>
+
                 <tr>
-                  <th>艇</th><th>展示ST</th><th>展示T</th><th>周回</th>
-                  <th>回り足</th><th>直線</th><th>チルト</th><th>部品交換</th>
+                  <th>艇</th>
+                  <th>モーター</th>
+                  <th>2連率</th>
+                  <th>3連率</th>
+                  <th>ボート</th>
+                  <th>2連率</th>
+                  <th>3連率</th>
+                  <th>評価</th>
                 </tr>
+
               </thead>
-              <tbody id="liveTable"></tbody>
+
+
+              <tbody
+                id="motorTable"
+              >
+              </tbody>
+
             </table>
+
           </div>
-        </article>
-      </div>
+
+        </section>
+
+      </section>
+
+
+
+      <!-- ================================================= -->
+      <!-- START -->
+      <!-- ================================================= -->
+
+      <section
+        id="start"
+        class="tab-panel"
+      >
+
+        <section class="panel">
+
+          <h3>
+            ST・今節
+          </h3>
+
+
+          <div class="table-wrap">
+
+            <table>
+
+              <thead>
+
+                <tr>
+                  <th>艇</th>
+                  <th>平均ST</th>
+                  <th>今節ST</th>
+                  <th>得点率</th>
+                  <th>順位</th>
+                  <th>F</th>
+                  <th>展示ST</th>
+                  <th>評価</th>
+                </tr>
+
+              </thead>
+
+
+              <tbody
+                id="startTable"
+              >
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </section>
+
+      </section>
+
+
+
+      <!-- ================================================= -->
+      <!-- LIVE -->
+      <!-- ================================================= -->
+
+      <section
+        id="live"
+        class="tab-panel"
+      >
+
+        <section class="panel">
+
+          <h3>
+            直前情報
+          </h3>
+
+
+          <div class="table-wrap">
+
+            <table>
+
+              <thead>
+
+                <tr>
+                  <th>艇</th>
+                  <th>進入</th>
+                  <th>展示ST</th>
+                  <th>展示タイム</th>
+                  <th>チルト</th>
+                  <th>展示順</th>
+                  <th>状態</th>
+                  <th>評価</th>
+                </tr>
+
+              </thead>
+
+
+              <tbody
+                id="liveTable"
+              >
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </section>
+
+      </section>
+
     </section>
+
   </main>
 
-  <div id="toast" class="toast">コピーしました</div>
+
+
+  <!-- ===================================================== -->
+  <!-- TOAST -->
+  <!-- ===================================================== -->
+
+  <div
+    id="toast"
+    class="toast"
+  >
+    コピーしました
+  </div>
+
+
+
+  <!-- ===================================================== -->
+  <!-- JS -->
+  <!-- ===================================================== -->
+
   <script src="app.js"></script>
+
 </body>
 </html>
