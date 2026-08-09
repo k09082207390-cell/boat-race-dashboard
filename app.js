@@ -1160,7 +1160,7 @@ async function openRace(
 
     setText(
       "fetchStatus",
-      `基本データ表示：${players.length}艇・詳細データ読み込み中...`
+      `基本データ表示：${players.length}艇・追加データ並列取得中...`
     );
 
 
@@ -1208,11 +1208,14 @@ async function openRace(
 
 
 // ============================================================
-// DEFERRED FULL DATA
+// DEFERRED LIGHT ENRICHMENT
 //
-// 初期表示は fast=1 で軽く。
-// その後、通常APIを裏で1回だけ取得して
-// 今節成績・得点率・直近モーター・コース別などを全部差し替える。
+// 通常APIをもう1回丸ごと呼ぶのをやめる。
+// 重いデータだけ専用debug APIで並列取得。
+// ・直近モーター
+// ・コース別
+//
+// 片方が失敗しても、成功した方だけ画面へ反映する。
 // ============================================================
 
 async function loadDeferredFullData(
@@ -1221,7 +1224,6 @@ async function loadDeferredFullData(
 
   const targetDate =
     selectedDate;
-
 
   const targetPlaceNo =
     selectedVenue?.placeNo;
@@ -1235,21 +1237,372 @@ async function loadDeferredFullData(
   }
 
 
+  const motorUrl =
+    `${API_URL}` +
+    `?hiduke=${targetDate}` +
+    `&place_no=${targetPlaceNo}` +
+    `&race_no=${raceNo}` +
+    `&debug=motor`;
+
+
+  const courseUrl =
+    `${API_URL}` +
+    `?hiduke=${targetDate}` +
+    `&place_no=${targetPlaceNo}` +
+    `&race_no=${raceNo}` +
+    `&debug=course3`;
+
+
+  const [
+    motorResult,
+    courseResult
+  ] =
+    await Promise.allSettled([
+
+      fetchJsonWithTimeout(
+        motorUrl,
+        12000
+      ),
+
+      fetchJsonWithTimeout(
+        courseUrl,
+        15000
+      )
+    ]);
+
+
+  // 別レースへ移動済みなら捨てる
+  if (
+    selectedRaceNo !== raceNo
+    ||
+    selectedDate !== targetDate
+    ||
+    Number(
+      selectedVenue?.placeNo
+    )
+    !==
+    Number(
+      targetPlaceNo
+    )
+  ) {
+
+    return;
+  }
+
+
+  const baseData =
+    currentRaceData;
+
+
+  if (
+    !baseData
+    ||
+    !Array.isArray(
+      baseData.players
+    )
+  ) {
+
+    return;
+  }
+
+
+  let motorCount =
+    0;
+
+  let courseCount =
+    0;
+
+
+  // ---------------------------------------------------------
+  // 直近モーター
+  // ---------------------------------------------------------
+
+  if (
+    motorResult.status ===
+    "fulfilled"
+  ) {
+
+    const motorData =
+      motorResult.value;
+
+
+    if (
+      motorData?.ok
+      &&
+      Array.isArray(
+        motorData.motors
+      )
+    ) {
+
+      const motorMap =
+        new Map(
+          motorData.motors.map(
+            item => [
+              Number(
+                item.lane
+              ),
+              item
+            ]
+          )
+        );
+
+
+      baseData.players =
+        baseData.players.map(
+          player => {
+
+            const item =
+              motorMap.get(
+                Number(
+                  player.lane
+                )
+              );
+
+
+            if (
+              !item
+            ) {
+
+              return player;
+            }
+
+
+            return {
+
+              ...player,
+
+              motor: {
+
+                ...player.motor,
+
+                recent1Month:
+                  item.recent1Month
+                  ||
+                  player.motor?.recent1Month
+                  ||
+                  null
+              }
+            };
+          }
+        );
+
+
+      motorCount =
+        motorData.count
+        ??
+        motorData.motors.length;
+
+
+      baseData.recentMotors = {
+
+        available:
+          Boolean(
+            motorData.available
+          ),
+
+        status:
+          motorData.status
+          ??
+          null,
+
+        source:
+          motorData.source
+          ||
+          "ボートレース日和",
+
+        count:
+          motorCount
+      };
+    }
+  }
+
+
+  // ---------------------------------------------------------
+  // コース別
+  // ---------------------------------------------------------
+
+  if (
+    courseResult.status ===
+    "fulfilled"
+  ) {
+
+    const courseData =
+      courseResult.value;
+
+
+    if (
+      courseData?.ok
+      &&
+      Array.isArray(
+        courseData.players
+      )
+    ) {
+
+      const courseMap =
+        new Map(
+          courseData.players.map(
+            item => [
+              Number(
+                item.lane
+              ),
+              item
+            ]
+          )
+        );
+
+
+      baseData.players =
+        baseData.players.map(
+          player => {
+
+            const item =
+              courseMap.get(
+                Number(
+                  player.lane
+                )
+              );
+
+
+            return {
+
+              ...player,
+
+              courseStats:
+                item
+                ||
+                player.courseStats
+                ||
+                {
+                  available:
+                    false
+                }
+            };
+          }
+        );
+
+
+      courseCount =
+        courseData.count
+        ??
+        courseData.players.length;
+
+
+      baseData.courseStats = {
+
+        available:
+          Boolean(
+            courseData.available
+          ),
+
+        source:
+          courseData.source
+          ||
+          "ボートレース日和",
+
+        count:
+          courseCount,
+
+        expectedCount:
+          courseData.expectedCount
+          ??
+          6,
+
+        allAvailable:
+          courseData.diagnostics?.allAvailable
+          ??
+          false,
+
+        unavailableLanes:
+          courseData.diagnostics?.unavailableLanes
+          ??
+          []
+      };
+    }
+  }
+
+
+  currentRaceData =
+    baseData;
+
+
+  const players =
+    baseData.players;
+
+
+  renderQuickSummary(
+    players
+  );
+
+  renderCompareTable(
+    players
+  );
+
+  renderPlayerDetails(
+    players
+  );
+
+  renderSources(
+    baseData
+  );
+
+  renderAiText(
+    baseData
+  );
+
+
+  const motorOk =
+    motorResult.status ===
+    "fulfilled";
+
+  const courseOk =
+    courseResult.status ===
+    "fulfilled";
+
+
+  setText(
+    "fetchStatus",
+    `表示完了：6艇・直近モーター ${motorCount}艇・コース別 ${courseCount}艇${
+      !motorOk || !courseOk
+        ? "（一部取得失敗）"
+        : ""
+    }`
+  );
+}
+
+
+// ============================================================
+// FETCH WITH TIMEOUT
+// 何分も待たないための上限。
+// ============================================================
+
+async function fetchJsonWithTimeout(
+  url,
+  timeoutMs
+) {
+
+  const controller =
+    new AbortController();
+
+
+  const timer =
+    setTimeout(
+      () =>
+        controller.abort(),
+      timeoutMs
+    );
+
+
   try {
-
-    const url =
-      `${API_URL}` +
-      `?hiduke=${targetDate}` +
-      `&place_no=${targetPlaceNo}` +
-      `&race_no=${raceNo}`;
-
 
     const response =
       await fetch(
         url,
         {
           cache:
-            "no-store"
+            "no-store",
+
+          signal:
+            controller.signal
         }
       );
 
@@ -1260,107 +1613,22 @@ async function loadDeferredFullData(
 
     if (
       !response.ok
-      ||
-      !data.ok
     ) {
 
       throw new Error(
-        data.error
+        data?.error
         ||
         `HTTP ${response.status}`
       );
     }
 
 
-    // 別レースへ移動していたら古い結果は捨てる
-    if (
-      selectedRaceNo !== raceNo
-      ||
-      selectedDate !== targetDate
-      ||
-      Number(
-        selectedVenue?.placeNo
-      )
-      !==
-      Number(
-        targetPlaceNo
-      )
-    ) {
+    return data;
 
-      return;
-    }
+  } finally {
 
-
-    currentRaceData =
-      data;
-
-
-    const players =
-      Array.isArray(
-        data.players
-      )
-        ? data.players
-        : [];
-
-
-    renderQuickSummary(
-      players
-    );
-
-    renderCompareTable(
-      players
-    );
-
-    renderPlayerDetails(
-      players
-    );
-
-    renderWeather(
-      data.race?.weather
-      ||
-      {}
-    );
-
-    renderSources(
-      data
-    );
-
-    renderAiText(
-      data
-    );
-
-
-    const courseCount =
-      data.courseStats?.count
-      ??
-      0;
-
-
-    const recentMotorCount =
-      data.recentMotors?.count
-      ??
-      0;
-
-
-    setText(
-      "fetchStatus",
-      `取得完了：${players.length}艇・直近モーター ${recentMotorCount}艇・コース別 ${courseCount}艇`
-    );
-
-  } catch (
-    error
-  ) {
-
-    console.warn(
-      "deferred full data error",
-      error
-    );
-
-
-    // 初期データはすでに表示済みなので画面は消さない
-    setText(
-      "fetchStatus",
-      "基本データ表示済み・詳細データの追加取得に失敗"
+    clearTimeout(
+      timer
     );
   }
 }
