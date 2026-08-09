@@ -1391,19 +1391,23 @@ function renderCompareTable(
   }
 
 
-  const hasExhibition =
-    players.some(
-      p =>
-        p.before?.available
-        &&
-        (
-          p.before?.exhibitionTime !== null
-          ||
-          p.before?.startST !== null
-          ||
-          p.before?.startCourse !== null
-        )
-    );
+  const hasBeforeField =
+    getter =>
+      players.some(
+        p => {
+
+          const val =
+            getter(
+              p
+            );
+
+          return val !== null
+            &&
+            val !== undefined
+            &&
+            val !== "";
+        }
+      );
 
 
   const rows = [
@@ -1602,8 +1606,271 @@ function renderCompareTable(
   ];
 
 
+  const exhibitionRows = [];
+
+
   if (
-    hasExhibition
+    hasBeforeField(
+      p =>
+        getBeforeValue(
+          p,
+          [
+            "exhibitionTime"
+          ]
+        )
+    )
+  ) {
+
+    exhibitionRows.push({
+
+      label:
+        "展示タイム",
+
+      type:
+        "exhibitionTime",
+
+      value:
+        p =>
+          formatExhibitionTime(
+            getBeforeValue(
+              p,
+              [
+                "exhibitionTime"
+              ]
+            )
+          )
+    });
+  }
+
+
+  if (
+    hasBeforeField(
+      p =>
+        getBeforeValue(
+          p,
+          [
+            "lapTime",
+            "lapExhibitionTime",
+            "lap"
+          ]
+        )
+    )
+  ) {
+
+    exhibitionRows.push({
+
+      label:
+        "周回タイム",
+
+      type:
+        "lapTime",
+
+      value:
+        p =>
+          formatExhibitionTime(
+            getBeforeValue(
+              p,
+              [
+                "lapTime",
+                "lapExhibitionTime",
+                "lap"
+              ]
+            )
+          )
+    });
+  }
+
+
+  if (
+    hasBeforeField(
+      p =>
+        getBeforeValue(
+          p,
+          [
+            "turnTime",
+            "turnExhibitionTime",
+            "turn"
+          ]
+        )
+    )
+  ) {
+
+    exhibitionRows.push({
+
+      label:
+        "回り足タイム",
+
+      type:
+        "turnTime",
+
+      value:
+        p =>
+          formatExhibitionTime(
+            getBeforeValue(
+              p,
+              [
+                "turnTime",
+                "turnExhibitionTime",
+                "turn"
+              ]
+            )
+          )
+    });
+  }
+
+
+  if (
+    hasBeforeField(
+      p =>
+        getBeforeValue(
+          p,
+          [
+            "straightTime",
+            "straightExhibitionTime",
+            "straight"
+          ]
+        )
+    )
+  ) {
+
+    exhibitionRows.push({
+
+      label:
+        "直線タイム",
+
+      type:
+        "straightTime",
+
+      value:
+        p =>
+          formatExhibitionTime(
+            getBeforeValue(
+              p,
+              [
+                "straightTime",
+                "straightExhibitionTime",
+                "straight"
+              ]
+            )
+          )
+    });
+  }
+
+
+  if (
+    hasBeforeField(
+      p =>
+        getBeforeValue(
+          p,
+          [
+            "startST"
+          ]
+        )
+    )
+  ) {
+
+    exhibitionRows.push({
+
+      label:
+        "展示ST",
+
+      type:
+        "exhibitionST",
+
+      value:
+        p =>
+          formatST(
+            getBeforeValue(
+              p,
+              [
+                "startST"
+              ]
+            )
+          )
+    });
+  }
+
+
+  if (
+    hasBeforeField(
+      p =>
+        getBeforeValue(
+          p,
+          [
+            "startCourse"
+          ]
+        )
+    )
+  ) {
+
+    exhibitionRows.push({
+
+      label:
+        "展示進入",
+
+      value:
+        p => {
+
+          const course =
+            getBeforeValue(
+              p,
+              [
+                "startCourse"
+              ]
+            );
+
+          return course !== null
+            &&
+            course !== undefined
+              ? `${course}C`
+              : "―";
+        }
+    });
+  }
+
+
+  if (
+    hasBeforeField(
+      p =>
+        getBeforeValue(
+          p,
+          [
+            "tilt"
+          ]
+        )
+    )
+  ) {
+
+    exhibitionRows.push({
+
+      label:
+        "チルト",
+
+      value:
+        p => {
+
+          const tilt =
+            getBeforeValue(
+              p,
+              [
+                "tilt"
+              ]
+            );
+
+          return tilt !== null
+            &&
+            tilt !== undefined
+              ? String(
+                  tilt
+                )
+              : "―";
+        }
+    });
+  }
+
+
+  if (
+    exhibitionRows.length
   ) {
 
     const insertIndex =
@@ -1612,53 +1879,6 @@ function renderCompareTable(
           row.label ===
           "コース1着率"
       );
-
-
-    const exhibitionRows = [
-
-      {
-        label:
-          "展示タイム",
-
-        type:
-          "exhibitionTime",
-
-        value:
-          p =>
-            formatExhibitionTime(
-              p.before?.exhibitionTime
-            )
-      },
-
-      {
-        label:
-          "展示ST",
-
-        type:
-          "exhibitionST",
-
-        value:
-          p =>
-            formatST(
-              p.before?.startST
-            )
-      },
-
-      {
-        label:
-          "展示進入",
-
-        value:
-          p =>
-            p.before?.startCourse
-            !== null
-            &&
-            p.before?.startCourse
-            !== undefined
-              ? `${p.before.startCourse}C`
-              : "―"
-      }
-    ];
 
 
     rows.splice(
@@ -1816,6 +2036,12 @@ function compareCellClass(
 
   if (
     type === "exhibitionTime"
+    ||
+    type === "lapTime"
+    ||
+    type === "turnTime"
+    ||
+    type === "straightTime"
   ) {
 
     return "";
@@ -2025,43 +2251,213 @@ function renderPlayerDetails(
             === 1;
 
 
-          const exhibitionMetrics =
-            player.before?.available
+          const exhibitionMetricParts = [];
+
+
+          const detailExhibitionTime =
+            getBeforeValue(
+              player,
+              [
+                "exhibitionTime"
+              ]
+            );
+
+
+          if (
+            detailExhibitionTime !== null
             &&
-            (
-              player.before?.exhibitionTime !== null
-              ||
-              player.before?.startST !== null
-              ||
-              player.before?.startCourse !== null
-            )
-              ? [
-                  metric(
-                    "展示タイム",
-                    formatExhibitionTime(
-                      player.before?.exhibitionTime
-                    )
-                  ),
+            detailExhibitionTime !== undefined
+            &&
+            detailExhibitionTime !== ""
+          ) {
 
-                  metric(
-                    "展示ST",
-                    formatST(
-                      player.before?.startST
-                    )
-                  ),
-
-                  metric(
-                    "展示進入",
-                    player.before?.startCourse !== null
-                    &&
-                    player.before?.startCourse !== undefined
-                      ? `${player.before.startCourse}C`
-                      : "―"
-                  )
-                ].join(
-                  ""
+            exhibitionMetricParts.push(
+              metric(
+                "展示タイム",
+                formatExhibitionTime(
+                  detailExhibitionTime
                 )
-              : "";
+              )
+            );
+          }
+
+
+          const detailLapTime =
+            getBeforeValue(
+              player,
+              [
+                "lapTime",
+                "lapExhibitionTime",
+                "lap"
+              ]
+            );
+
+
+          if (
+            detailLapTime !== null
+            &&
+            detailLapTime !== undefined
+            &&
+            detailLapTime !== ""
+          ) {
+
+            exhibitionMetricParts.push(
+              metric(
+                "周回タイム",
+                formatExhibitionTime(
+                  detailLapTime
+                )
+              )
+            );
+          }
+
+
+          const detailTurnTime =
+            getBeforeValue(
+              player,
+              [
+                "turnTime",
+                "turnExhibitionTime",
+                "turn"
+              ]
+            );
+
+
+          if (
+            detailTurnTime !== null
+            &&
+            detailTurnTime !== undefined
+            &&
+            detailTurnTime !== ""
+          ) {
+
+            exhibitionMetricParts.push(
+              metric(
+                "回り足タイム",
+                formatExhibitionTime(
+                  detailTurnTime
+                )
+              )
+            );
+          }
+
+
+          const detailStraightTime =
+            getBeforeValue(
+              player,
+              [
+                "straightTime",
+                "straightExhibitionTime",
+                "straight"
+              ]
+            );
+
+
+          if (
+            detailStraightTime !== null
+            &&
+            detailStraightTime !== undefined
+            &&
+            detailStraightTime !== ""
+          ) {
+
+            exhibitionMetricParts.push(
+              metric(
+                "直線タイム",
+                formatExhibitionTime(
+                  detailStraightTime
+                )
+              )
+            );
+          }
+
+
+          const detailStartST =
+            getBeforeValue(
+              player,
+              [
+                "startST"
+              ]
+            );
+
+
+          if (
+            detailStartST !== null
+            &&
+            detailStartST !== undefined
+            &&
+            detailStartST !== ""
+          ) {
+
+            exhibitionMetricParts.push(
+              metric(
+                "展示ST",
+                formatST(
+                  detailStartST
+                )
+              )
+            );
+          }
+
+
+          const detailStartCourse =
+            getBeforeValue(
+              player,
+              [
+                "startCourse"
+              ]
+            );
+
+
+          if (
+            detailStartCourse !== null
+            &&
+            detailStartCourse !== undefined
+            &&
+            detailStartCourse !== ""
+          ) {
+
+            exhibitionMetricParts.push(
+              metric(
+                "展示進入",
+                `${detailStartCourse}C`
+              )
+            );
+          }
+
+
+          const detailTilt =
+            getBeforeValue(
+              player,
+              [
+                "tilt"
+              ]
+            );
+
+
+          if (
+            detailTilt !== null
+            &&
+            detailTilt !== undefined
+            &&
+            detailTilt !== ""
+          ) {
+
+            exhibitionMetricParts.push(
+              metric(
+                "チルト",
+                String(
+                  detailTilt
+                )
+              )
+            );
+          }
+
+
+          const exhibitionMetrics =
+            exhibitionMetricParts.join(
+              ""
+            );
 
 
           return `
@@ -2582,23 +2978,8 @@ function renderAiText(
           player
         )}`,
 
-        ...(
-          player.before?.available
-          &&
-          (
-            player.before?.exhibitionTime !== null
-            ||
-            player.before?.startST !== null
-          )
-            ? [
-                `展示 ${formatExhibitionTime(
-                  player.before?.exhibitionTime
-                )}`,
-                `展示ST ${formatST(
-                  player.before?.startST
-                )}`
-              ]
-            : []
+        ...buildAiBeforeParts(
+          player
         ),
 
         `コメント ${
@@ -3570,6 +3951,204 @@ function unit(
     val === ""
       ? "―"
       : `${val}${suffix}`;
+}
+
+
+function getBeforeValue(
+  player,
+  keys
+) {
+
+  const before =
+    player?.before
+    ||
+    {};
+
+
+  for (
+    const key of keys
+  ) {
+
+    const val =
+      before[
+        key
+      ];
+
+
+    if (
+      val !== null
+      &&
+      val !== undefined
+      &&
+      val !== ""
+    ) {
+
+      return val;
+    }
+  }
+
+
+  return null;
+}
+
+
+function buildAiBeforeParts(
+  player
+) {
+
+  const parts = [];
+
+
+  const exhibitionTime =
+    getBeforeValue(
+      player,
+      [
+        "exhibitionTime"
+      ]
+    );
+
+
+  if (
+    exhibitionTime !== null
+  ) {
+
+    parts.push(
+      `展示 ${formatExhibitionTime(
+        exhibitionTime
+      )}`
+    );
+  }
+
+
+  const lapTime =
+    getBeforeValue(
+      player,
+      [
+        "lapTime",
+        "lapExhibitionTime",
+        "lap"
+      ]
+    );
+
+
+  if (
+    lapTime !== null
+  ) {
+
+    parts.push(
+      `周回 ${formatExhibitionTime(
+        lapTime
+      )}`
+    );
+  }
+
+
+  const turnTime =
+    getBeforeValue(
+      player,
+      [
+        "turnTime",
+        "turnExhibitionTime",
+        "turn"
+      ]
+    );
+
+
+  if (
+    turnTime !== null
+  ) {
+
+    parts.push(
+      `回り足 ${formatExhibitionTime(
+        turnTime
+      )}`
+    );
+  }
+
+
+  const straightTime =
+    getBeforeValue(
+      player,
+      [
+        "straightTime",
+        "straightExhibitionTime",
+        "straight"
+      ]
+    );
+
+
+  if (
+    straightTime !== null
+  ) {
+
+    parts.push(
+      `直線 ${formatExhibitionTime(
+        straightTime
+      )}`
+    );
+  }
+
+
+  const startST =
+    getBeforeValue(
+      player,
+      [
+        "startST"
+      ]
+    );
+
+
+  if (
+    startST !== null
+  ) {
+
+    parts.push(
+      `展示ST ${formatST(
+        startST
+      )}`
+    );
+  }
+
+
+  const startCourse =
+    getBeforeValue(
+      player,
+      [
+        "startCourse"
+      ]
+    );
+
+
+  if (
+    startCourse !== null
+  ) {
+
+    parts.push(
+      `展示進入 ${startCourse}C`
+    );
+  }
+
+
+  const tilt =
+    getBeforeValue(
+      player,
+      [
+        "tilt"
+      ]
+    );
+
+
+  if (
+    tilt !== null
+  ) {
+
+    parts.push(
+      `チルト ${tilt}`
+    );
+  }
+
+
+  return parts;
 }
 
 
