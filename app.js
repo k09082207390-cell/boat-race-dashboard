@@ -1271,12 +1271,12 @@ async function loadDeferredFullData(
 
       fetchJsonWithTimeout(
         motorUrl,
-        12000
+        16000
       ),
 
       fetchJsonWithTimeout(
         courseUrl,
-        15000
+        30000
       )
     ]);
 
