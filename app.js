@@ -1087,6 +1087,16 @@ async function openRace(
     }
 
 
+    data.__diag = {
+
+      motor:
+        "取得待ち",
+
+      course:
+        "取得待ち"
+    };
+
+
     currentRaceData =
       data;
 
@@ -1306,11 +1316,37 @@ async function loadDeferredFullData(
   }
 
 
+  baseData.__diag =
+    baseData.__diag
+    ||
+    {};
+
+
   let motorCount =
     0;
 
   let courseCount =
     0;
+
+
+  baseData.__diag.motor =
+    motorResult.status === "fulfilled"
+      ? "応答あり"
+      : `失敗: ${
+          motorResult.reason?.name
+          ||
+          "error"
+        }`;
+
+
+  baseData.__diag.course =
+    courseResult.status === "fulfilled"
+      ? "応答あり"
+      : `失敗: ${
+          courseResult.reason?.name
+          ||
+          "error"
+        }`;
 
 
   // ---------------------------------------------------------
@@ -1413,6 +1449,16 @@ async function loadDeferredFullData(
         count:
           motorCount
       };
+
+
+      baseData.__diag.motor =
+        motorData.available
+          ? `OK ${motorCount}/6`
+          : `応答あり 0/6${
+              motorData.status
+                ? ` HTTP${motorData.status}`
+                : ""
+            }`;
     }
   }
 
@@ -1517,6 +1563,12 @@ async function loadDeferredFullData(
           ??
           []
       };
+
+
+      baseData.__diag.course =
+        courseData.available
+          ? `OK ${courseCount}/6`
+          : `応答あり ${courseCount}/6`;
     }
   }
 
@@ -3252,35 +3304,155 @@ function renderSources(
   }
 
 
+  const players =
+    Array.isArray(
+      data.players
+    )
+      ? data.players
+      : [];
+
+
+  const countField =
+    getter =>
+      players.filter(
+        player => {
+
+          const val =
+            getter(
+              player
+            );
+
+
+          return val !== null
+            &&
+            val !== undefined
+            &&
+            val !== ""
+            &&
+            val !== false;
+        }
+      ).length;
+
+
   const rows = [
 
     [
       "BOAT RACE公式",
-      data.meta?.raceSourceStatus
-      === 200
+      data.meta?.raceSourceStatus === 200
         ? "OK"
         : "確認"
     ],
 
     [
+      "今節成績",
+      `${countField(
+        p =>
+          (
+            p.series?.raceCount
+            ??
+            0
+          ) > 0
+      )}/6`
+    ],
+
+    [
+      "得点率",
+      `${countField(
+        p =>
+          p.series?.pointRate
+      )}/6`
+    ],
+
+    [
+      "直前情報",
+      `${countField(
+        p =>
+          p.before?.available
+      )}/6`
+    ],
+
+    [
+      "展示タイム",
+      `${countField(
+        p =>
+          p.before?.exhibitionTime
+      )}/6`
+    ],
+
+    [
+      "展示ST",
+      `${countField(
+        p =>
+          p.before?.startST
+      )}/6`
+    ],
+
+    [
+      "周回タイム",
+      diagnosticOptionalCount(
+        countField(
+          p =>
+            p.before?.lapTime
+        )
+      )
+    ],
+
+    [
+      "回り足",
+      diagnosticOptionalCount(
+        countField(
+          p =>
+            p.before?.turnTime
+        )
+      )
+    ],
+
+    [
+      "直線",
+      diagnosticOptionalCount(
+        countField(
+          p =>
+            p.before?.straightTime
+        )
+      )
+    ],
+
+    [
       "選手コメント",
-      `${value(
-        data.comments?.count
-      )}艇`
+      `${countField(
+        p =>
+          p.comment?.available
+      )}/6`
     ],
 
     [
       "直近モーター",
-      `${value(
-        data.recentMotors?.count
-      )}艇`
+      `${countField(
+        p =>
+          p.motor?.recent1Month?.available
+      )}/6`
     ],
 
     [
       "コース別",
-      `${value(
-        data.courseStats?.count
-      )}艇`
+      `${countField(
+        p =>
+          p.courseStats?.available
+      )}/6`
+    ],
+
+    [
+      "直近モーターAPI",
+      data.__diag?.motor
+      ||
+      "未確認"
+    ],
+
+    [
+      "コース別API",
+      data.__diag?.course
+      ||
+      "未確認"
     ]
   ];
 
@@ -4345,6 +4517,16 @@ function toNumber(
   )
     ? n
     : null;
+}
+
+
+function diagnosticOptionalCount(
+  count
+) {
+
+  return count > 0
+    ? `${count}/6`
+    : "未取得/非対応";
 }
 
 
