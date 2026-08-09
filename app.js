@@ -1391,6 +1391,21 @@ function renderCompareTable(
   }
 
 
+  const hasExhibition =
+    players.some(
+      p =>
+        p.before?.available
+        &&
+        (
+          p.before?.exhibitionTime !== null
+          ||
+          p.before?.startST !== null
+          ||
+          p.before?.startCourse !== null
+        )
+    );
+
+
   const rows = [
 
     {
@@ -1587,6 +1602,73 @@ function renderCompareTable(
   ];
 
 
+  if (
+    hasExhibition
+  ) {
+
+    const insertIndex =
+      rows.findIndex(
+        row =>
+          row.label ===
+          "コース1着率"
+      );
+
+
+    const exhibitionRows = [
+
+      {
+        label:
+          "展示タイム",
+
+        type:
+          "exhibitionTime",
+
+        value:
+          p =>
+            formatExhibitionTime(
+              p.before?.exhibitionTime
+            )
+      },
+
+      {
+        label:
+          "展示ST",
+
+        type:
+          "exhibitionST",
+
+        value:
+          p =>
+            formatST(
+              p.before?.startST
+            )
+      },
+
+      {
+        label:
+          "展示進入",
+
+        value:
+          p =>
+            p.before?.startCourse
+            !== null
+            &&
+            p.before?.startCourse
+            !== undefined
+              ? `${p.before.startCourse}C`
+              : "―"
+      }
+    ];
+
+
+    rows.splice(
+      insertIndex,
+      0,
+      ...exhibitionRows
+    );
+  }
+
+
   let html =
     `
       <table>
@@ -1719,6 +1801,24 @@ function compareCellClass(
     return stClass(
       player.courseStats?.averageST
     );
+  }
+
+
+  if (
+    type === "exhibitionST"
+  ) {
+
+    return stClass(
+      player.before?.startST
+    );
+  }
+
+
+  if (
+    type === "exhibitionTime"
+  ) {
+
+    return "";
   }
 
 
@@ -1925,6 +2025,45 @@ function renderPlayerDetails(
             === 1;
 
 
+          const exhibitionMetrics =
+            player.before?.available
+            &&
+            (
+              player.before?.exhibitionTime !== null
+              ||
+              player.before?.startST !== null
+              ||
+              player.before?.startCourse !== null
+            )
+              ? [
+                  metric(
+                    "展示タイム",
+                    formatExhibitionTime(
+                      player.before?.exhibitionTime
+                    )
+                  ),
+
+                  metric(
+                    "展示ST",
+                    formatST(
+                      player.before?.startST
+                    )
+                  ),
+
+                  metric(
+                    "展示進入",
+                    player.before?.startCourse !== null
+                    &&
+                    player.before?.startCourse !== undefined
+                      ? `${player.before.startCourse}C`
+                      : "―"
+                  )
+                ].join(
+                  ""
+                )
+              : "";
+
+
           return `
             <details class="player-detail">
 
@@ -2024,6 +2163,8 @@ function renderPlayerDetails(
                       player
                     )
                   )}
+
+                  ${exhibitionMetrics}
 
                   ${metric(
                     "モーター",
@@ -2440,6 +2581,25 @@ function renderAiText(
         `トレンド ${motorTrendText(
           player
         )}`,
+
+        ...(
+          player.before?.available
+          &&
+          (
+            player.before?.exhibitionTime !== null
+            ||
+            player.before?.startST !== null
+          )
+            ? [
+                `展示 ${formatExhibitionTime(
+                  player.before?.exhibitionTime
+                )}`,
+                `展示ST ${formatST(
+                  player.before?.startST
+                )}`
+              ]
+            : []
+        ),
 
         `コメント ${
           player.comment?.text
@@ -3410,6 +3570,46 @@ function unit(
     val === ""
       ? "―"
       : `${val}${suffix}`;
+}
+
+
+function formatExhibitionTime(
+  val
+) {
+
+  if (
+    val === null
+    ||
+    val === undefined
+    ||
+    val === ""
+  ) {
+
+    return "―";
+  }
+
+
+  const n =
+    Number(
+      val
+    );
+
+
+  if (
+    Number.isFinite(
+      n
+    )
+  ) {
+
+    return n.toFixed(
+      2
+    );
+  }
+
+
+  return String(
+    val
+  );
 }
 
 
