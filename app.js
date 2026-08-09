@@ -3512,101 +3512,14 @@ function renderAiText(
   }
 
 
-  const players =
-    data.players
-    ||
-    [];
-
-
-  const lines = [
-
-    `${data.race?.place || ""} ${data.race?.raceNo || ""}R`
-  ];
-
-
-  for (
-    const player of players
-  ) {
-
-    const course =
-      player.courseStats
-      ||
-      {};
-
-
-    lines.push(
-      [
-        `${player.lane} ${player.name}`,
-
-        `級 ${player.class || ""}`,
-
-        `全国 ${value(
-          player.national?.winRate
-        )}`,
-
-        `今節ST ${value(
-          player.series?.averageST
-        )}`,
-
-        `得点率 ${value(
-          player.series?.pointRate
-        )}`,
-
-        `コース1着 ${percent(
-          course.firstRate
-        )}(${value(
-          course.entryCount
-        )}走)`,
-
-        Number(
-          player.lane
-        )
-        === 1
-          ? `逃げ ${percent(
-              course.escapeRate
-            )}`
-          : `逃がし ${percent(
-              course.allowEscapeRate
-            )}`,
-
-        `差し ${percent(
-          course.winningMethod?.sashiRate
-        )}`,
-
-        `まくり ${percent(
-          course.winningMethod?.makuriRate
-        )}`,
-
-        `M2連 ${percent(
-          player.motor?.secondRate
-        )}`,
-
-        `直近M2連 ${percent(
-          player.motor?.recent1Month?.secondRate
-        )}`,
-
-        `トレンド ${motorTrendText(
-          player
-        )}`,
-
-        ...buildAiBeforeParts(
-          player
-        ),
-
-        `コメント ${
-          player.comment?.text
-          ||
-          ""
-        }`
-      ].join(
-        " / "
-      )
-    );
-  }
-
-
   textarea.value =
-    lines.join(
+    [
+      `${data.race?.place || ""} ${data.race?.raceNo || ""}R`,
+      "",
+      "「AI用データをコピー」を押すと、",
+      "基本情報・枠別勝率・モータ情報・今節成績・直前情報の",
+      "5ページを一括取得してAI予想用テキストを作成します。"
+    ].join(
       "\n"
     );
 }
@@ -3618,36 +3531,105 @@ function renderAiText(
 
 async function copyAiText() {
 
-  const textarea =
-    document.getElementById(
-      "aiText"
-    );
-
-
-  const text =
-    textarea?.value
-    ||
-    "";
-
-
   if (
-    !text
+    !selectedVenue
+    ||
+    !selectedRaceNo
   ) {
+
+    setText(
+      "copyState",
+      "レースを選択してください"
+    );
 
     return;
   }
 
 
+  const button =
+    document.getElementById(
+      "copyBtn"
+    );
+
+
+  if (
+    button
+  ) {
+
+    button.disabled =
+      true;
+  }
+
+
+  setText(
+    "copyState",
+    "5ページ一括取得中..."
+  );
+
+
   try {
 
+    const url =
+      `${API_URL}` +
+      `?hiduke=${selectedDate}` +
+      `&place_no=${selectedVenue.placeNo}` +
+      `&race_no=${selectedRaceNo}` +
+      `&mode=ai-pack`;
+
+
+    const response =
+      await fetch(
+        url,
+        {
+          cache:
+            "no-store"
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      !response.ok
+      ||
+      !data.ok
+      ||
+      !data.aiText
+    ) {
+
+      throw new Error(
+        data.error
+        ||
+        "AI用データの取得に失敗しました"
+      );
+    }
+
+
+    const textarea =
+      document.getElementById(
+        "aiText"
+      );
+
+
+    if (
+      textarea
+    ) {
+
+      textarea.value =
+        data.aiText;
+    }
+
+
     await navigator.clipboard.writeText(
-      text
+      data.aiText
     );
 
 
     setText(
       "copyState",
-      "コピーしました"
+      `コピーしました（${data.successCount}/5ページ）`
     );
 
 
@@ -3664,8 +3646,18 @@ async function copyAiText() {
 
     setText(
       "copyState",
-      "コピー失敗"
+      "AI用データ取得失敗"
     );
+
+  } finally {
+
+    if (
+      button
+    ) {
+
+      button.disabled =
+        false;
+    }
   }
 }
 
