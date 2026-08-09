@@ -1047,7 +1047,8 @@ async function openRace(
       `${API_URL}` +
       `?hiduke=${selectedDate}` +
       `&place_no=${selectedVenue.placeNo}` +
-      `&race_no=${raceNo}`;
+      `&race_no=${raceNo}` +
+      `&fast=1`;
 
 
     const response =
@@ -1156,6 +1157,18 @@ async function openRace(
       data
     );
 
+
+    setText(
+      "fetchStatus",
+      `基本データ表示：${players.length}艇・コース別読み込み中...`
+    );
+
+
+    loadDeferredCourseStats(
+      data,
+      raceNo
+    );
+
   } catch (
     error
   ) {
@@ -1191,6 +1204,201 @@ async function openRace(
           </div>
         `;
     }
+  }
+}
+
+
+// ============================================================
+// DEFERRED COURSE STATS
+// ============================================================
+
+async function loadDeferredCourseStats(
+  baseData,
+  raceNo
+) {
+
+  try {
+
+    const url =
+      `${WORKER_BASE}/api` +
+      `?hiduke=${selectedDate}` +
+      `&place_no=${selectedVenue.placeNo}` +
+      `&race_no=${raceNo}` +
+      `&debug=course3`;
+
+
+    const response =
+      await fetch(
+        url,
+        {
+          cache:
+            "no-store"
+        }
+      );
+
+
+    const courseData =
+      await response.json();
+
+
+    if (
+      !response.ok
+      ||
+      !courseData.ok
+      ||
+      !Array.isArray(
+        courseData.players
+      )
+    ) {
+
+      throw new Error(
+        courseData.error
+        ||
+        `HTTP ${response.status}`
+      );
+    }
+
+
+    if (
+      selectedRaceNo !==
+      raceNo
+    ) {
+
+      return;
+    }
+
+
+    const courseMap =
+      new Map(
+        courseData.players.map(
+          item => [
+            Number(
+              item.lane
+            ),
+            item
+          ]
+        )
+      );
+
+
+    baseData.players =
+      (
+        baseData.players
+        ||
+        []
+      ).map(
+        player => {
+
+          const course =
+            courseMap.get(
+              Number(
+                player.lane
+              )
+            );
+
+
+          return {
+
+            ...player,
+
+            courseStats:
+              course
+              ||
+              player.courseStats
+              ||
+              {
+                available:
+                  false
+              }
+          };
+        }
+      );
+
+
+    baseData.courseStats = {
+
+      available:
+        Boolean(
+          courseData.available
+        ),
+
+      source:
+        courseData.source
+        ||
+        "ボートレース日和",
+
+      count:
+        courseData.count
+        ??
+        0,
+
+      expectedCount:
+        courseData.expectedCount
+        ??
+        6,
+
+      allAvailable:
+        courseData.diagnostics?.allAvailable
+        ??
+        false,
+
+      unavailableLanes:
+        courseData.diagnostics?.unavailableLanes
+        ??
+        []
+    };
+
+
+    currentRaceData =
+      baseData;
+
+
+    const players =
+      baseData.players
+      ||
+      [];
+
+
+    renderQuickSummary(
+      players
+    );
+
+    renderCompareTable(
+      players
+    );
+
+    renderPlayerDetails(
+      players
+    );
+
+    renderSources(
+      baseData
+    );
+
+    renderAiText(
+      baseData
+    );
+
+
+    setText(
+      "fetchStatus",
+      `取得完了：${players.length}艇・コース別 ${courseData.count ?? 0}艇`
+    );
+
+  } catch (
+    error
+  ) {
+
+    console.warn(
+      "deferred course stats error",
+      error
+    );
+
+
+    setText(
+      "fetchStatus",
+      "基本データ表示済み・コース別データ取得失敗"
+    );
   }
 }
 
